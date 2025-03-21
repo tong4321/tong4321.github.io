@@ -23,8 +23,8 @@ body {
   var player = new Clappr.Player({
           source: 'https://cco-streamer1.cdn.3bbtv.com:8443/3bb/live/505/505.mpd',
           mimeType: 'application/dash+xml',
-	  width: '100%',
           height: '100%',
+          width: '100%',
           autoPlay: true,
           plugins: [LevelSelector, DashShakaPlayback, Clappr.MediaControl],
           events: {onReady: function() {var plugin = this.getPlugin('click_to_pause'); plugin && plugin.disable();},},
