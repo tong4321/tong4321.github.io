@@ -7,15 +7,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@clappr/player@0.4.1/dist/clappr.min.css">
 <style>
   body {
-    background-color: #000; /* พื้นหลังสีดำ */
-    margin: 0; /* ลบขอบของ body เพื่อให้เต็มหน้าจอ */
-    overflow: hidden; /* ซ่อนแถบเลื่อน */
+    background-color: #000;
+    margin: 0;
+    overflow: hidden;
+    user-select: none; /* Prevent text selection on double-click */
   }
 
   #player-container {
-    width: 100vw;  /* ความกว้างเท่ากับขนาด viewport */
-    height: 100vh; /* ความสูงเท่ากับขนาด viewport */
-    position: relative; /* สำหรับการจัดวางข้อความผิดพลาดแบบ absolute */
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    cursor: pointer; /* Change cursor to indicate clickability */
   }
 
   #player {
@@ -24,14 +26,14 @@
   }
 
   #error-message {
-    position: absolute; /* จัดวางแบบ absolute เพื่อให้อยู่ตรงกลาง */
+    position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* จัดกึ่งกลางอย่างแม่นยำ */
-    color: #f00; /* สีแดง */
+    transform: translate(-50%, -50%);
+    color: #f00;
     font-size: 1.5em;
     text-align: center;
-    display: none; /* ซ่อนไว้ก่อน (จะแสดงเมื่อเกิดข้อผิดพลาด) */
+    display: none;
   }
 </style>
 </head>
@@ -57,22 +59,20 @@
 <script src="//cdn.jsdelivr.net/npm/cdnbye-shaka@latest"></script>
 
 <script>
-  var player; // ประกาศตัวแปร player นอก try/catch เพื่อเข้าถึงได้ในส่วนจัดการข้อผิดพลาด
+  var player;
   var playerContainer = document.getElementById('player-container');
   var errorMessageDiv = document.getElementById('error-message');
   var errorDetailsP = document.getElementById('error-details');
 
   function showError(message, details) {
-    console.error("Player Error:", message, details); // บันทึกข้อผิดพลาดใน console
-    errorMessageDiv.style.display = 'block';  // แสดงข้อความผิดพลาด
-    errorDetailsP.textContent = details || ""; // แสดงรายละเอียดข้อผิดพลาด (ถ้ามี)
+    console.error("Player Error:", message, details);
+    errorMessageDiv.style.display = 'block';
+    errorDetailsP.textContent = details || "";
 
-    // หยุดการเล่นหาก player ถูกสร้างแล้วเพื่อป้องกันข้อผิดพลาดเพิ่มเติม
     if (player) {
       player.stop();
     }
   }
-
 
   try {
     player = new Clappr.Player({
@@ -85,10 +85,10 @@
       events: {
         onReady: function() {
           var plugin = this.getPlugin('click_to_pause');
-          plugin && plugin.disable();
+          //plugin && plugin.disable();  // Remove this line
         },
         onError: function(error) {
-          showError("Clappr Player Error", error); // เรียกใช้ฟังก์ชันแสดงข้อผิดพลาด
+          showError("Clappr Player Error", error);
         }
       },
       chromecast: {
@@ -101,17 +101,27 @@
             '9130a6448a74430794d355b48b56a64c': 'c2f4d3288cdb43cf81e519ceb414dd6f'
           }
         },
-        preferredAudioLanguage: 'th', // กำหนดภาษาเสียงเป็นภาษาไทย
+        preferredAudioLanguage: 'th',
       },
       shakaOnBeforeLoad: function(shaka_player) {
         shaka_player.addEventListener('error', function(event) {
-          showError("Shaka Player Error", event.detail); // เรียกใช้ฟังก์ชันแสดงข้อผิดพลาดจาก Shaka
+          showError("Shaka Player Error", event.detail);
         });
       },
       parentId: '#player'
     });
+
+    // Add click-to-pause functionality
+    playerContainer.addEventListener('click', function() {
+      if (player.isPlaying()) {
+        player.pause();
+      } else {
+        player.play();
+      }
+    });
+
   } catch (e) {
-    showError("Clappr Initialization Error", e.message); // จัดการข้อผิดพลาดในการเริ่มต้น Clappr
+    showError("Clappr Initialization Error", e.message);
   }
 </script>
 
