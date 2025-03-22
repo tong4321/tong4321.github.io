@@ -1,53 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>MPD Player with ClearKey</title>
-  <link href="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js" rel="stylesheet">
-  <style>
-    video {
-      width: 80%;
-      height: auto;
-    }
-  </style>
+<title>WANDERING OLDMAN AIS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@clappr/player@0.4.1/dist/clappr.min.css">
+<style>
+  body {
+    background-color: #000; /* พื้นหลังสีดำ */
+    margin: 0; /* ลบขอบของ body เพื่อให้เต็มหน้าจอ */
+    overflow: hidden; /* ซ่อนแถบเลื่อน */
+  }
+
+  #player-container {
+    width: 100vw;  /* ความกว้างเท่ากับขนาด viewport */
+    height: 100vh; /* ความสูงเท่ากับขนาด viewport */
+    position: relative; /* สำหรับการจัดวางข้อความผิดพลาดแบบ absolute */
+  }
+
+  #player {
+    width: 100%;
+    height: 100%;
+  }
+
+  #error-message {
+    position: absolute; /* จัดวางแบบ absolute เพื่อให้อยู่ตรงกลาง */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* จัดกึ่งกลางอย่างแม่นยำ */
+    color: #f00; /* สีแดง */
+    font-size: 1.5em;
+    text-align: center;
+    display: none; /* ซ่อนไว้ก่อน (จะแสดงเมื่อเกิดข้อผิดพลาด) */
+  }
+</style>
 </head>
 <body>
 
-  <h1>MPD Player with ClearKey</h1>
+<div id="player-container">
+  <div id="player"></div>
+  <div id="error-message">
+    <p>เกิดข้อผิดพลาดในการเล่นวิดีโอ</p>
+    <p id="error-details"></p>
+    <button onclick="location.reload()">ลองใหม่อีกครั้ง</button>
+  </div>
+</div>
 
-  <video id="dash-video-player" controls></video>
+<script src="//cdn.jsdelivr.net/npm/@clappr/player@0.4.1/dist/clappr.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/mux.js@5.6.7/dist/mux.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/level-selector@latest/dist/level-selector.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/clappr-chromecast-plugin@latest/dist/clappr-chromecast-plugin.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/clappr-pip@latest/dist/clappr-pip.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/clappr-playback-rate-plugin@latest/dist/clappr-playback-rate-plugin.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/shaka-player@2.5.10/dist/shaka-player.compiled.min.js"></script>
+<script src="//cdn.jsdelivr.net/gh/clappr/dash-shaka-playback@latest/dist/dash-shaka-playback.external.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/cdnbye-shaka@latest"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js"></script>
-  <script>
-    (function() {
-      var url = "https://udn-streamer1.cdn.3bbtv.com:8443/3bb/live/303/303.mpd"; // แทนที่ด้วย URL ของ MPD file ของคุณ
-      var video = document.querySelector("#dash-video-player");
-      var player = dashjs.MediaPlayer().create();
-      player.initialize(video, url, true);
+<script>
+  var player; // ประกาศตัวแปร player นอก try/catch เพื่อเข้าถึงได้ในส่วนจัดการข้อผิดพลาด
+  var playerContainer = document.getElementById('player-container');
+  var errorMessageDiv = document.getElementById('error-message');
+  var errorDetailsP = document.getElementById('error-details');
 
-      // ClearKey DRM Configuration
-      player.setProtectionData({
-        "org.w3.clearkey": {
-          "clearkeys": {
-            "9130a6448a74430794d355b48b56a64c":"c2f4d3288cdb43cf81e519ceb414dd6f" // แทนที่ด้วย KID และ Key ที่ถูกต้อง
-          }
+  function showError(message, details) {
+    console.error("Player Error:", message, details); // บันทึกข้อผิดพลาดใน console
+    errorMessageDiv.style.display = 'block';  // แสดงข้อความผิดพลาด
+    errorDetailsP.textContent = details || ""; // แสดงรายละเอียดข้อผิดพลาด (ถ้ามี)
+
+    // หยุดการเล่นหาก player ถูกสร้างแล้วเพื่อป้องกันข้อผิดพลาดเพิ่มเติม
+    if (player) {
+      player.stop();
+    }
+  }
+
+
+  try {
+    player = new Clappr.Player({
+      source: 'https://udn-streamer1.cdn.3bbtv.com:8443/3bb/live/303/303.mpd',
+      mimeType: 'application/dash+xml',
+      height: '100%',
+      width: '100%',
+      autoPlay: true,
+      plugins: [LevelSelector, DashShakaPlayback, Clappr.MediaControl],
+      events: {
+        onReady: function() {
+          var plugin = this.getPlugin('click_to_pause');
+          plugin && plugin.disable();
+        },
+        onError: function(error) {
+          showError("Clappr Player Error", error); // เรียกใช้ฟังก์ชันแสดงข้อผิดพลาด
         }
-      });
+      },
+      chromecast: {
+        preload: 'metadata',
+        contentType: 'video/mpd',
+      },
+      shakaConfiguration: {
+        drm: {
+          clearKeys: {
+            '9130a6448a74430794d355b48b56a64c': 'c2f4d3288cdb43cf81e519ceb414dd6f'
+          }
+        },
+        preferredAudioLanguage: 'th', // กำหนดภาษาเสียงเป็นภาษาไทย
+      },
+      shakaOnBeforeLoad: function(shaka_player) {
+        shaka_player.addEventListener('error', function(event) {
+          showError("Shaka Player Error", event.detail); // เรียกใช้ฟังก์ชันแสดงข้อผิดพลาดจาก Shaka
+        });
+      },
+      parentId: '#player'
+    });
+  } catch (e) {
+    showError("Clappr Initialization Error", e.message); // จัดการข้อผิดพลาดในการเริ่มต้น Clappr
+  }
+</script>
 
-      // Optionally, listen for DRM events to debug issues
-      player.on(dashjs.MediaPlayer.events.DRM_SESSION_CREATED, function(e) {
-        console.log("DRM Session Created:", e);
-      });
-
-      player.on(dashjs.MediaPlayer.events.DRM_MESSAGE_RECEIVED, function(e) {
-        console.log("DRM Message Received:", e);
-      });
-
-      player.on(dashjs.MediaPlayer.events.DRM_ERROR, function(e) {
-        console.error("DRM Error:", e);
-      });
-
-    })();
-  </script>
+<div style='position:absolute;bottom:10px;right:20px;font-size: 15px; font-weight: bold;color: #ff0;'><em>Cr.ผู้เฒ่าพเนจร</em></div>
+<center>
+  <p><ins>ผู้เฒ่าพเนจร</ins></p>
+</center>
 
 </body>
 </html>
