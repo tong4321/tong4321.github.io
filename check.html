@@ -38,9 +38,10 @@
 
 <script>
     function fetchData() {
-        const url = 'http://xxip25.top:8080/player_api.php?username=m1pA6E&password=285356&action=get_info';
+    const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+    const targetUrl = "http://xxip25.top:8080/player_api.php?username=m1pA6E&password=285356&action=get_info";
 
-        fetch(url)
+    fetch(proxyUrl + targetUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('HTTP error ' + response.status);
@@ -61,3 +62,4 @@
 
 </body>
 </html>
+
