@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>📺 IPTV Info Viewer</title>
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 1.5rem;
+    background: #f0f4f8;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    color: #1e88e5;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  form {
+    display: flex;
+    max-width: 640px;
+    width: 100%;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  input[type="url"] {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 2px solid #bbb;
+    transition: border-color 0.3s ease;
+  }
+  input[type="url"]:focus {
+    border-color: #1e88e5;
+    outline: none;
+  }
+  button {
+    background-color: #1e88e5;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1.6rem;
+    transition: background-color 0.25s ease;
+  }
+  button:hover {
+    background-color: #1669bb;
+  }
+  #result {
+    max-width: 640px;
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.1);
+    padding: 1.8rem 2.2rem;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.8rem 1.6rem;
+    margin: 0 0 2rem 0;
+  }
+  dt {
+    font-weight: 700;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  dd {
+    margin: 0;
+    word-break: break-word;
+  }
+  #chart {
+    width: 100%;
+    height: 240px;
+    margin-bottom: 2rem;
+  }
+  #mermaid {
+    background: #eef6fb;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+</style>
+</head>
+<body>
+
+<h1><span class="mdi mdi-television"></span> IPTV Info Viewer 📺</h1>
+<form id="iptv-form" aria-label="Fetch IPTV Information">
+  <input type="url" id="iptv-url" placeholder="Enter IPTV URL (e.g. http://xxip25.top:8080/get.php?username=zC3Eby&password=245776&type=m3u_plus)" required aria-required="true" aria-describedby="input-desc" />
+  <button type="submit" aria-label="Fetch IPTV data"><span class="mdi mdi-cloud-download-outline"></span> Fetch</button>
+</form>
+<div id="input-desc" style="display:none;">Input the IPTV API URL including username and password query string parameters.</div>
+
+<section id="result" hidden aria-live="polite" aria-atomic="true">
+  <dl id="data-list"></dl>
+  <div id="chart" aria-label="Connections chart"></div>
+  <div id="mermaid"></div>
+</section>
+
+<script>
+  mermaid.initialize({startOnLoad:false});
+
+  const form = document.getElementById('iptv-form');
+  const input = document.getElementById('iptv-url');
+  const result = document.getElementById('result');
+  const dataList = document.getElementById('data-list');
+  const chartDom = document.getElementById('chart');
+  const mermaidDiv = document.getElementById('mermaid');
+  let chart = null;
+
+  function clearDisplay() {
+    dataList.innerHTML = '';
+    chartDom.innerHTML = '';
+    mermaidDiv.innerHTML = '';
+    if(chart){ chart.dispose(); chart = null; }
+  }
+
+  function parseQuery(url) {
+    try {
+      return Object.fromEntries(new URL(url).searchParams.entries());
+    } catch {
+      return {};
+    }
+  }
+
+  function renderData(data) {
+    dataList.innerHTML = '';
+    const icons = {
+      server_host: 'mdi-server',
+      streaming_port: 'mdi-portable-wifi-off',
+      username: 'mdi-account',
+      passowrd: 'mdi-lock',
+      status: data.status.toLowerCase() === 'active' ? 'mdi-check-circle' : 'mdi-alert-circle-outline',
+      line_type: 'mdi-shield-check',
+      start_date: 'mdi-calendar-start',
+      expiry_date: 'mdi-calendar-end',
+      allow_connection: 'mdi-link-variant',
+      active_connection: 'mdi-link',
+      allowed_output: 'mdi-video-outline',
+      server_time: 'mdi-clock-outline',
+      powered_by: 'mdi-cogs',
+    };
+    for (const [key, val] of Object.entries(data)) {
+      const dt = document.createElement('dt');
+      const iconSpan = document.createElement('span');
+      iconSpan.className = `mdi ${icons[key] || 'mdi-information'} mdi-18px`;
+      iconSpan.setAttribute('aria-hidden', 'true');
+      dt.append(iconSpan, document.createTextNode(key.replace(/_/g, ' ') + ':'));
+      const dd = document.createElement('dd');
+      dd.textContent = val;
+      dataList.append(dt, dd);
+    }
+  }
+
+  function renderChart(allowedStr, activeStr) {
+    if(!allowedStr || !activeStr) return;
+    const allowed = Number(allowedStr) || 0;
+    const active = Number(activeStr) || 0;
+    if(allowed === 0 && active === 0) return;
+
+    chartDom.style.height = '240px';
+    chart = echarts.init(chartDom);
+    chart.setOption({
+      title: {text: 'Connections', left: 'center', textStyle: {color: '#1e88e5', fontWeight: '600'}},
+      tooltip: {trigger: 'item'},
+      legend: {bottom: 0, data: ['Allowed Connections','Active Connections'], textStyle: {color:'#555'}},
+      series: [
+        {
+          name: 'Connections',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          label: {
+            show: true,
+            formatter: '{b}: {c}',
+            color: '#222',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: '16',
+              fontWeight: 'bold'
+            }
+          },
+          labelLine: {show: true},
+          data: [
+            {value: allowed, name: 'Allowed Connections', itemStyle: {color: '#1976d2'}},
+            {value: active, name: 'Active Connections', itemStyle: {color: '#90caf9'}}
+          ]
+        }
+      ]
+    });
+  }
+
+  function renderMermaid(status) {
+    let statusNormalized = String(status).toLowerCase();
+    let color = '#1e88e5';
+    if(statusNormalized === 'active') color = '#43a047'; // green
+    else if (statusNormalized === 'inactive') color = '#e53935'; // red
+    const mermaidCode = `
+      graph LR
+        S[Server Status]-->|Status|StatusBox["<span style='color:${color};font-weight:bold;'>${status}</span>"]
+        style StatusBox fill:${color}33,stroke:${color},stroke-width:2px
+    `;
+    mermaidDiv.innerHTML = `<div class="mermaid">${mermaidCode}</div>`;
+    mermaid.init(undefined, mermaidDiv);
+  }
+
+form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const url = input.value.trim();
+    if(!url){
+      alert('Please enter a valid IPTV URL!');
+      return;
+    }
+    clearDisplay();
+    dataList.innerHTML = `<dd>⏳ Fetching data...</dd>`;
+    result.hidden = false;
+    try {
+      const params = parseQuery(url);
+      // ใช้ proxy เพื่อเคลียร์ CORS
+      const proxy = "https://corsproxy.io/?";
+      const response = await fetch(proxy + encodeURIComponent(url));
+      if(!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const dataJson = await response.json();
+
+      const parsedUrl = new URL(url);
+      const data = {
+        server_host: parsedUrl.hostname || '',
+        streaming_port: parsedUrl.port || '',
+        username: params.username || '',
+        passowrd: params.password || '',
+        status: dataJson.status || '',
+        line_type: dataJson.line_type || '',
+        start_date: dataJson.start_date || '',
+        expiry_date: dataJson.expiry_date || '',
+        allow_connection: dataJson.allow_connection || '',
+        active_connection: dataJson.active_connection || '',
+        allowed_output: dataJson.allowed_output || '',
+        server_time: dataJson.server_time || '',
+        powered_by: dataJson.powered_by || ''
+      };
+
+      renderData(data);
+      renderChart(data.allow_connection, data.active_connection);
+      renderMermaid(data.status);
+    } catch(err) {
+      dataList.innerHTML = '';
+      result.hidden = true;
+      alert(`❌ Failed to fetch IPTV info:\n${err.message}`);
+    }
+  });
+</script>
+
+</body>
+</html>
