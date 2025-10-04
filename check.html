@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>API Viewer with AllOrigins Proxy (Single Input with Clear)</title>
+    <title>API Viewer</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
         * { box-sizing: border-box; }
@@ -159,67 +159,79 @@
         const btnClear = document.getElementById('btnClear');
         const inputUrl = document.getElementById('fullUrl');
 
-        form.addEventListener('submit', event => {
-            event.preventDefault();
-            clearError();
+	  // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php"
+	function fixApiPath(urlObj) {
+		if(urlObj.pathname.endsWith("get.php")){
+			urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+		}
+		return urlObj;
+	}
 
-            let fullUrl = inputUrl.value.trim();
+	form.addEventListener('submit', event => {
+		event.preventDefault();
+		clearError();
 
-            if (!fullUrl) {
-                showError('กรุณากรอก URL');
-                return;
-            }
+		let fullUrl = inputUrl.value.trim();
 
-            try {
-                let urlObj = new URL(fullUrl);
-                let username = urlObj.searchParams.get('username');
-                let password = urlObj.searchParams.get('password');
+		if (!fullUrl) {
+			showError('กรุณากรอก URL');
+			return;
+		}
 
-                if (!username || !password) {
-                    showError('กรุณาใส่ username และ password ใน URL');
-                    return;
-                }
+		try {
+			let urlObj = new URL(fullUrl);
 
-                if (!urlObj.searchParams.get('action')) {
-                    urlObj.searchParams.set('action', 'get_info');
-                }
+			// เปลี่ยน get.php เป็น player_api.php
+			urlObj = fixApiPath(urlObj);
 
-                const encodedUrl = encodeURIComponent(urlObj.toString());
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
+			let username = urlObj.searchParams.get('username');
+			let password = urlObj.searchParams.get('password');
 
-                resultElem.textContent = 'Loading...';
+			if (!username || !password) {
+				showError('กรุณาใส่ username และ password ใน URL');
+				return;
+			}
 
-                fetch(proxyUrl)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        try {
-                            const jsonData = JSON.parse(data.contents);
+			if (!urlObj.searchParams.get('action')) {
+				urlObj.searchParams.set('action', 'get_info');
+			}
 
-                            if(jsonData.user_info){
-                                jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
-                                jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
-                            }
-                            if(jsonData.server_info){
-                                jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
-                            }
+			const encodedUrl = encodeURIComponent(urlObj.toString());
+			const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
 
-                            resultElem.textContent = JSON.stringify(jsonData, null, 4);
-                        } catch {
-                            resultElem.textContent = data.contents; // fallback แสดงข้อความดิบ
-                        }
-                    })
-                    .catch(err => {
-                        showError('เกิดข้อผิดพลาด: ' + err.message);
-                        resultElem.textContent = '';
-                    });
-            } catch (err) {
-                showError('URL ไม่ถูกต้อง');
-                resultElem.textContent = '';
-            }
-        });
+			resultElem.textContent = 'Loading...';
+
+			fetch(proxyUrl)
+				.then(response => {
+					if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+					return response.json();
+				})
+				.then(data => {
+					try {
+						const jsonData = JSON.parse(data.contents);
+
+						if(jsonData.user_info){
+							jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
+							jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
+						}
+						if(jsonData.server_info){
+							jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
+						}
+
+						resultElem.textContent = JSON.stringify(jsonData, null, 4);
+					} catch {
+						resultElem.textContent = data.contents; // fallback แสดงข้อความดิบ
+					}
+				})
+				.catch(err => {
+					showError('เกิดข้อผิดพลาด: ' + err.message);
+					resultElem.textContent = '';
+				});
+		} catch (err) {
+			showError('URL ไม่ถูกต้อง');
+			resultElem.textContent = '';
+		}
+	});
 
         btnClear.addEventListener('click', () => {
             inputUrl.value = '';
@@ -240,5 +252,3 @@
     </script>
 </body>
 </html>
-
-
