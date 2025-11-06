@@ -160,12 +160,12 @@
         const inputUrl = document.getElementById('fullUrl');
 
 	  // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php"
-	function fixApiPath(urlObj) {
-		if(urlObj.pathname.endsWith("get.php")){
-			urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
-		}
+	/*function fixApiPath(urlObj) {
+	//	if(urlObj.pathname.endsWith("get.php")){
+	//		urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+	//	}
 		return urlObj;
-	}
+	} */
 
 	form.addEventListener('submit', event => {
 		event.preventDefault();
@@ -182,7 +182,7 @@
 			let urlObj = new URL(fullUrl);
 
 			// เปลี่ยน get.php เป็น player_api.php
-			urlObj = fixApiPath(urlObj);
+			//urlObj = fixApiPath(urlObj);
 
 			let username = urlObj.searchParams.get('username');
 			let password = urlObj.searchParams.get('password');
@@ -252,4 +252,5 @@
     </script>
 </body>
 </html>
+
 
