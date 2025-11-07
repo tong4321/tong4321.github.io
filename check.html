@@ -167,71 +167,70 @@
 		return urlObj;
 	}
 
-	form.addEventListener('submit', event => {
-		event.preventDefault();
-		clearError();
+form.addEventListener('submit', event => {
+    event.preventDefault();
+    clearError();
 
-		let fullUrl = inputUrl.value.trim();
+    let fullUrl = inputUrl.value.trim();
 
-		if (!fullUrl) {
-			showError('กรุณากรอก URL');
-			return;
-		}
+    if (!fullUrl) {
+        showError('กรุณากรอก URL');
+        return;
+    }
 
-		try {
-			let urlObj = new URL(fullUrl);
+    try {
+        let urlObj = new URL(fullUrl);
 
-			// เปลี่ยน get.php เป็น player_api.php
-			urlObj = fixApiPath(urlObj);
+        // เปลี่ยน get.php เป็น player_api.php
+        urlObj = fixApiPath(urlObj);
 
-			let username = urlObj.searchParams.get('username');
-			let password = urlObj.searchParams.get('password');
+        // ลบ parameter type ออก
+        urlObj.searchParams.delete('type');
 
-			if (!username || !password) {
-				showError('กรุณาใส่ username และ password ใน URL');
-				return;
-			}
+        let username = urlObj.searchParams.get('username');
+        let password = urlObj.searchParams.get('password');
 
-			/*if (!urlObj.searchParams.get('action')) {
-				urlObj.searchParams.set('action', 'get_info');
-			}*/
+        if (!username || !password) {
+            showError('กรุณาใส่ username และ password ใน URL');
+            return;
+        }
 
-			const encodedUrl = encodeURIComponent(urlObj.toString());
-			const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
+        const encodedUrl = encodeURIComponent(urlObj.toString());
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
 
-			resultElem.textContent = 'Loading...';
+        resultElem.textContent = 'Loading...';
 
-			fetch(proxyUrl)
-				.then(response => {
-					if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
-					return response.json();
-				})
-				.then(data => {
-					try {
-						const jsonData = JSON.parse(data.contents);
+        fetch(proxyUrl)
+            .then(response => {
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                try {
+                    const jsonData = JSON.parse(data.contents);
 
-						if(jsonData.user_info){
-							jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
-							jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
-						}
-						if(jsonData.server_info){
-							jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
-						}
+                    if(jsonData.user_info){
+                        jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
+                        jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
+                    }
+                    if(jsonData.server_info){
+                        jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
+                    }
 
-						resultElem.textContent = JSON.stringify(jsonData, null, 4);
-					} catch {
-						resultElem.textContent = data.contents; // fallback แสดงข้อความดิบ
-					}
-				})
-				.catch(err => {
-					showError('เกิดข้อผิดพลาด: ' + err.message);
-					resultElem.textContent = '';
-				});
-		} catch (err) {
-			showError('URL ไม่ถูกต้อง');
-			resultElem.textContent = '';
-		}
-	});
+                    resultElem.textContent = JSON.stringify(jsonData, null, 4);
+                } catch {
+                    resultElem.textContent = data.contents; // fallback แสดงข้อความดิบ
+                }
+            })
+            .catch(err => {
+                showError('เกิดข้อผิดพลาด: ' + err.message);
+                resultElem.textContent = '';
+            });
+    } catch (err) {
+        showError('URL ไม่ถูกต้อง');
+        resultElem.textContent = '';
+    }
+});
 
         btnClear.addEventListener('click', () => {
             inputUrl.value = '';
@@ -252,6 +251,7 @@
     </script>
 </body>
 </html>
+
 
 
 
