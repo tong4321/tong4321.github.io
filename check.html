@@ -195,8 +195,7 @@ form.addEventListener('submit', event => {
             return;
         }
 
-        const encodedUrl = encodeURIComponent(urlObj.toString());
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
+        const proxyUrl = `https://cors-anywhere.herokuapp.com/${urlObj.toString()}`;
 
         resultElem.textContent = 'Loading...';
 
@@ -251,6 +250,7 @@ form.addEventListener('submit', event => {
     </script>
 </body>
 </html>
+
 
 
 
