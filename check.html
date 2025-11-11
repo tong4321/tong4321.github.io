@@ -167,6 +167,7 @@
 		return urlObj;
 	}
 
+	form.addEventListener('submit', event => {
 		event.preventDefault();
 		clearError();
 
@@ -191,9 +192,9 @@
 				return;
 			}
 
-			/*if (!urlObj.searchParams.get('action')) {
+			if (!urlObj.searchParams.get('action')) {
 				urlObj.searchParams.set('action', 'get_info');
-			}*/
+			}
 
 			const encodedUrl = encodeURIComponent(urlObj.toString());
 			const proxyUrl = `https://api.allorigins.win/get?url=${encodedUrl}`;
@@ -230,15 +231,7 @@
 			showError('URL ไม่ถูกต้อง');
 			resultElem.textContent = '';
 		}
-            .catch(err => {
-                showError('เกิดข้อผิดพลาด: ' + err.message);
-                resultElem.textContent = '';
-            });
-    } catch (err) {
-        showError('URL ไม่ถูกต้อง');
-        resultElem.textContent = '';
-    }
-});
+	});
 
         btnClear.addEventListener('click', () => {
             inputUrl.value = '';
@@ -259,11 +252,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
