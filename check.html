@@ -159,6 +159,16 @@
         const btnClear = document.getElementById('btnClear');
         const inputUrl = document.getElementById('fullUrl');
 
+	function getQueryParam(param) {
+		const params = new URLSearchParams(window.location.search);
+		return params.get(param);
+	}
+	
+	const prefillUrl = getQueryParam('url');
+	if(prefillUrl) {
+		inputUrl.value = decodeURIComponent(prefillUrl);
+	}
+
 	  // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php"
 	function fixApiPath(urlObj) {
 		if(urlObj.pathname.endsWith("get.php")){
@@ -255,6 +265,7 @@
     </script>
 </body>
 </html>
+
 
 
 
