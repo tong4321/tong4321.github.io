@@ -194,10 +194,7 @@
 		// เปลี่ยน get.php เป็น player_api.php
 		urlObj = fixApiPath(urlObj);
 
-		const fixedUrlObj = fixApiPath(urlObj);
-		console.log(fixedUrlObj.href); 
-
-		 // ลบพารามิเตอร์ type และ output ออกก่อนใช้ fetch
+		// ลบพารามิเตอร์ type และ output ออกก่อนใช้ fetch
         urlObj.searchParams.delete('type');
         urlObj.searchParams.delete('output');
 
@@ -268,6 +265,7 @@
     </script>
 </body>
 </html>
+
 
 
 
