@@ -184,6 +184,10 @@
 		// เปลี่ยน get.php เป็น player_api.php
 		urlObj = fixApiPath(urlObj);
 
+		 // ลบพารามิเตอร์ type และ output ออกก่อนใช้ fetch
+        urlObj.searchParams.delete('type');
+        urlObj.searchParams.delete('output');
+
 		let username = urlObj.searchParams.get('username');
 		let password = urlObj.searchParams.get('password');
 
@@ -251,5 +255,6 @@
     </script>
 </body>
 </html>
+
 
 
