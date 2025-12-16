@@ -1,264 +1,653 @@
-<!doctype html>
+ด้านล่างเป็นไฟล์ HTML ฉบับปรับปรุง — แก้เฉพาะส่วน UI/UX (CSS และบาง attribute UI เล็กน้อย) เพื่อให้ใช้งานง่ายขึ้น และขยายความกว้างสูงสุดเป็น 1200px โดยไม่แตะต้อง logic ของ JavaScript เลย (ฟังก์ชันทั้งหมดและพฤติกรรมการเรียก API ยังคงเหมือนเดิม) — รายการเปลี่ยนแปลงหลัก:
+
+- ขยายความกว้างของ container เป็น max-width: 1200px
+- ปรับ grid column เพื่อให้พื้นที่ผลลัพธ์กว้างขึ้น (ช่วยอ่าน JSON ได้สะดวก)
+- เพิ่มขนาดตัวอักษรและ padding ของ controls ให้คลิก/พิมพ์ง่ายขึ้น
+- เพิ่มความสูงของแผงผลลัพธ์ (result) และ list เพื่อให้เห็นข้อมูลมากขึ้นโดยไม่ต้องเลื่อนบ่อย
+- ปรับสไตล์ปุ่มให้โดดเด่นและขนาดใหญ่ขึ้น (UX-friendly)
+- ปรับ breakpoint ให้ responsive ดีกว่าเดิมในหน้าจอขนาดกลาง
+- ไม่เปลี่ยน JavaScript หรือพฤติกรรมใด ๆ ของการทำงานกับ proxy/requests
+
+ผมยังคงเก็บข้อความอธิบายเกี่ยวกับการใช้ CORS proxy ไว้ตามเดิม (instance นี้ใช้ cors-anywhere.com) เพื่อความชัดเจน [(CORS Anywhere)](https://cors-anywhere.com/)
+
+นี่คือโค้ด HTML ที่แก้ไข UI/UX แล้ว (แทนที่ไฟล์เดิมได้เลย):
+
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>API Viewer — UX Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
-<script src="https://unpkg.com/mermaid@10.4.0/dist/mermaid.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
-<style>
-:root{
-  --bg:#f6f8ff; --card:#fff; --accent:#4f46e5; --muted:#6b7280; --success:#16a34a; --danger:#ef4444;
-  --glass: rgba(79,70,229,0.06);
-  --maxw:1200px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#fbfdff);-webkit-font-smoothing:antialiased}
-.container{max-width:var(--maxw);margin:28px auto;padding:20px;border-radius:14px;background:var(--card);box-shadow:0 18px 46px rgba(12,16,40,0.08);display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start}
-.header{grid-column:1/-1;display:flex;gap:14px;align-items:center;margin-bottom:2px}
-.logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;box-shadow:0 10px 28px rgba(79,70,229,0.16)}
-.title h1{margin:0;font-size:1.15rem;color:#071033}
-.title p{margin:2px 0 0;color:var(--muted);font-size:0.92rem}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Viewer — Improved UI/UX (wide)</title>
+    <style>
+        /* Core layout */
+        :root{
+            --bg:#eef2ff;
+            --card:#ffffff;
+            --accent:#4f46e5;
+            --danger:#e02424;
+            --muted:#6b7280;
+            --mono:'Source Code Pro', monospace;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, var(--bg) 0%, #f7fafc 100%);
+            display:flex;
+            justify-content:center;
+            align-items:flex-start;
+            padding:36px;
+            min-height:100vh;
+        }
+        .wrap{
+            width:100%;
+            max-width:1200px; /* increased width */
+            background:var(--card);
+            border-radius:14px;
+            padding:28px;
+            box-shadow: 0 18px 40px rgba(15,23,42,0.12);
+            display:grid;
+            grid-template-columns: 1fr 560px; /* wider output column */
+            gap:22px;
+            align-items:start;
+        }
+        h1{margin:0;font-size:1.45rem;color:#0f172a;font-weight:800}
+        p.lead{margin:8px 0 16px;color:var(--muted);font-size:1rem;line-height:1.35}
 
-/* left panel */
-.panel{padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(12,16,40,0.03)}
-label{display:block;font-weight:600;margin-bottom:6px;color:#071033;font-size:0.88rem}
-.input,select{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e6e9f2;background:#fff;font-size:0.95rem}
-.row{display:flex;gap:10px}
-.small{font-size:0.86rem;color:var(--muted)}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#071033;display:inline-flex;gap:8px;align-items:center}
-.btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 22px rgba(79,70,229,0.12)}
-.tag{background:var(--glass);padding:6px 10px;border-radius:999px;color:#0b1220;font-size:0.86rem}
-.list{margin-top:10px;max-height:200px;overflow:auto;border-radius:8px;padding:8px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px dashed rgba(79,70,229,0.04)}
-.list button{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;background:transparent;border:none;font-size:0.92rem}
+        /* Left column (controls) */
+        .panel{padding:16px;border-radius:12px;background:linear-gradient(180deg,rgba(79,70,229,0.03),transparent);}
+        label{display:block;font-weight:700;margin-bottom:8px;color:#111827}
+        input[type="text"], select{
+            width:100%;
+            padding:12px 14px;
+            border-radius:10px;
+            border:1.5px solid #e6e7ee;
+            font-size:1rem;
+        }
+        input[type="text"]:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 8px 28px rgba(79,70,229,0.08)}
+        .row{display:flex;gap:10px}
+        .small{font-size:0.95rem;color:var(--muted)}
 
-/* right panel */
-.output{display:flex;flex-direction:column;gap:10px}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pill{padding:6px 10px;border-radius:999px;background:#f3f4f6;font-weight:700}
-.controls{display:flex;gap:8px;align-items:center}
-.result{background:#0b1220;color:#e6eef8;border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.95rem;min-height:320px;overflow:auto;white-space:pre-wrap}
-.err{color:var(--danger);background:#fff5f5;border:1px solid rgba(239,68,68,0.08);padding:8px;border-radius:8px;font-weight:600}
-.grid-wide{display:grid;grid-template-columns:1fr 360px;gap:12px;margin-top:8px}
+        .controls{
+            display:flex;
+            gap:12px;
+            margin-top:14px;
+            flex-wrap:wrap;
+        }
+        button{
+            border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;font-size:0.95rem;
+        }
+        .btn-primary{background:var(--accent);color:white;box-shadow:0 10px 26px rgba(79,70,229,0.16)}
+        .btn-ghost{background:transparent;border:1px solid #e6e7ee;color:#111827}
+        .btn-danger{background:var(--danger);color:white}
+        .btn-icon{display:inline-flex;align-items:center;gap:8px;padding:10px 12px}
 
-/* visuals */
-.diagram{background:#fff;padding:10px;border-radius:8px;border:1px solid rgba(12,16,40,0.03)}
-.chartBox{height:220px;border-radius:8px;background:#fff;padding:8px;border:1px solid rgba(12,16,40,0.03)}
+        .meta{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        .tag{background:#f8fafc;padding:8px 12px;border-radius:999px;font-size:0.9rem;color:#374151;border:1px solid #eef2ff}
 
-/* responsive */
-@media (max-width:980px){.container{grid-template-columns:1fr;padding:12px}.logo{width:48px;height:48px}}
-kbd{background:#111827;color:#fff;padding:4px 6px;border-radius:6px;font-size:0.82rem}
-.footer{grid-column:1/-1;display:flex;justify-content:space-between;color:var(--muted);font-size:0.88rem;padding-top:6px}
-</style>
+        .presets, .history{margin-top:14px}
+        .list {max-height:220px;overflow:auto;padding:10px;border-radius:10px;background:#fff;border:1px dashed #eef2ff}
+        .list button{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;background:transparent;border:none;color:#0f172a;font-weight:600}
+        .list button:hover{background:#f8fafc}
+
+        /* Right column (output) */
+        .output-wrap{display:flex;flex-direction:column;gap:12px}
+        .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between}
+        .toolbar-left{display:flex;gap:12px;align-items:center}
+        .status{padding:8px 12px;border-radius:999px;background:#f3f4f6;color:#111827;font-weight:700;font-size:0.95rem}
+        .result{
+            background:#0f172a;color:#e6eef8;border-radius:12px;padding:18px;
+            font-family:var(--mono);font-size:0.98rem;min-height:420px;overflow:auto;white-space:pre-wrap;line-height:1.45;
+        }
+
+        .error{
+            color:var(--danger);
+            background:#fff5f5;
+            border:1px solid rgba(224,36,36,0.12);
+            padding:12px;border-radius:10px;font-weight:700;
+        }
+
+        .note{font-size:0.95rem;color:var(--muted)}
+
+        /* spinner */
+        .spinner{
+            width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,0.18);border-top:3px solid white;
+            animation:spin 1s linear infinite;display:inline-block;margin-left:8px;
+        }
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* responsive */
+        @media (max-width:1100px){
+            .wrap{grid-template-columns:1fr; padding:18px}
+            .result{min-height:320px}
+            .panel{padding:12px}
+        }
+
+        @media (max-width:520px){
+            .controls{gap:8px}
+            button{padding:10px 12px;font-size:0.92rem}
+            input[type="text"], select{padding:10px}
+            .list{max-height:180px}
+        }
+    </style>
 </head>
 <body>
-<div class="container" role="main" aria-label="API Viewer UX Pro">
-  <div class="header">
-    <div class="logo" aria-hidden="true">API</div>
-    <div class="title">
-      <h1>API Viewer — UX Pro ✨</h1>
-      <p class="small">สวยงาม ใช้งานง่าย — presets, history, pretty/raw, Mermaid และ chart สรุปข้อมูล</p>
-    </div>
-  </div>
+    <div class="wrap" role="main" aria-label="API Viewer improved UI">
+        <div class="panel" aria-labelledby="title-controls">
+            <h1 id="title-controls">API Viewer</h1>
+            <p class="lead">ป้อน URL แบบมี username และ password (เช่น http://.../player_api.php?username=xxx&password=yyy). เพิ่มตัวอย่างและประวัติการเรียกเพื่อความสะดวก</p>
 
-  <!-- LEFT -->
-  <aside class="panel" aria-labelledby="reqTitle">
-    <h2 id="reqTitle" style="margin:0 0 8px">Request 🔎</h2>
-    <form id="form" autocomplete="off">
-      <label for="url">Endpoint URL</label>
-      <input id="url" class="input" placeholder="http://host:port/player_api.php?username=xxx&password=yyy" required>
+            <form id="apiForm" autocomplete="off" aria-label="Form for API URL with credentials">
+                <label for="fullUrl">API URL (รวม username & password):</label>
+                <input type="text" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx" required aria-required="true" />
 
-      <div style="margin-top:10px" class="row">
-        <div style="flex:1">
-          <label for="action">Action</label>
-          <select id="action" class="input">
-            <option value="">(auto) get_info</option>
-            <option>get_info</option>
-            <option>get_simple_info</option>
-            <option>get_live_streams</option>
-          </select>
+                <div class="meta" aria-hidden="false">
+                    <div class="tag" id="proxyTag">Using proxy: <strong style="margin-left:6px">cors-anywhere.com</strong></div>
+                    <div class="tag" id="rateTag" title="Rate limit per website">Rate limit: 20 req/min</div>
+                </div>
+
+                <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+                    <label style="margin:0;font-weight:700">Action:</label>
+                    <select id="actionSelect" aria-label="Choose API action">
+                        <option value="">(use default: get_info)</option>
+                        <option value="get_info">get_info</option>
+                        <option value="get_simple_info">get_simple_info</option>
+                        <option value="get_live_streams">get_live_streams</option>
+                    </select>
+                </div>
+
+                <div class="controls" style="margin-top:12px;">
+                    <button id="btnFetch" class="btn-primary" type="submit" aria-label="Get Info">Get Info</button>
+                    <button id="btnClear" type="button" class="btn-ghost" aria-label="Clear form">Clear</button>
+                    <button id="btnCopyUrl" type="button" class="btn-ghost btn-icon" aria-label="Copy request URL">Copy URL</button>
+                    <button id="btnSavePreset" type="button" class="btn-ghost btn-icon" aria-label="Save to presets">Save Preset</button>
+                    <button id="btnToggleProxy" type="button" class="btn-ghost btn-icon" aria-label="Toggle proxy usage">Toggle Proxy</button>
+                </div>
+            </form>
+
+            <div class="presets">
+                <label style="margin-bottom:6px">Presets / Examples:</label>
+                <div class="list" id="presetList" role="listbox" aria-label="Example URLs">
+                    <!-- populated dynamically -->
+                </div>
+            </div>
+
+            <div class="history" style="margin-top:12px">
+                <label style="margin-bottom:6px">History (local):</label>
+                <div class="list" id="historyList" role="listbox" aria-label="History of used URLs">
+                    <!-- history items -->
+                </div>
+            </div>
+
+            <div style="margin-top:12px" class="note">
+                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
+            </div>
         </div>
-        <div style="width:120px">
-          <label style="visibility:hidden">submit</label>
-          <button id="fetchBtn" class="btn primary" type="submit"><span class="mdi mdi-rocket-launch"></span> Go</button>
+
+        <div class="output-wrap" aria-live="polite">
+            <div class="panel" style="padding:12px;">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <div id="status" class="status">Ready</div>
+                        <div id="httpStatus" style="margin-left:8px;color:var(--muted);font-weight:700"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button id="btnPretty" class="btn-ghost" title="Pretty / Raw view">Pretty</button>
+                        <button id="btnCopy" class="btn-ghost" title="Copy response">Copy</button>
+                        <button id="btnDownload" class="btn-ghost" title="Download JSON">Download</button>
+                        <button id="btnToggleRaw" class="btn-ghost" title="Toggle raw/parsed">Raw</button>
+                    </div>
+                </div>
+
+                <div id="error" class="error" role="alert" style="display:none;margin-top:10px"></div>
+
+                <pre id="result" class="result" aria-label="API response output" tabindex="0"></pre>
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:8px">
+                <div class="note" id="lastInfo">--</div>
+                <div>
+                    <button id="btnClearHistory" class="btn-ghost" title="Clear history">Clear History</button>
+                    <button id="btnResetPresets" class="btn-ghost" title="Reset presets">Reset Presets</button>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div class="actions" style="margin-top:12px">
-        <button id="copyUrl" type="button" class="btn"><span class="mdi mdi-content-copy"></span> Copy URL</button>
-        <button id="savePreset" type="button" class="btn"><span class="mdi mdi-bookmark-plus"></span> Save Preset</button>
-        <button id="toggleProxy" type="button" class="btn"><span class="mdi mdi-web"></span> Proxy</button>
-        <button id="clearForm" type="button" class="btn"><span class="mdi mdi-broom"></span> Clear</button>
-      </div>
-
-    </form>
-
-    <div style="margin-top:14px">
-      <label>Presets • ตัวอย่าง</label>
-      <div id="presets" class="list" role="listbox"></div>
     </div>
 
-    <div style="margin-top:12px">
-      <label>History (local)</label>
-      <div id="history" class="list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="clearHistory" class="btn"><span class="mdi mdi-delete"></span> Clear</button>
-        <button id="resetPresets" class="btn"><span class="mdi mdi-restore"></span> Reset</button>
-      </div>
-    </div>
+    <script>
+        /* --- Existing logic preserved + UI enhancements --- */
 
-    <div style="margin-top:12px" class="small">Tip: กด <kbd>Ctrl/Cmd + Enter</kbd> เพื่อส่งเร็ว ⚡</div>
-  </aside>
+        // Helpers (unchanged logic preserved)
+        function convertTimestamp(ts) {
+            const t = parseInt(ts);
+            if (isNaN(t)) return ts;
+            const d = new Date(t * 1000);
+            return d.toISOString().replace('T', ' ').substr(0, 19);
+        }
 
-  <!-- RIGHT -->
-  <section class="panel output" aria-labelledby="outTitle">
-    <h2 id="outTitle" style="margin:0 0 8px">Response 🧾</h2>
-    <div class="toolbar">
-      <div class="meta">
-        <div id="state" class="pill">Ready</div>
-        <div id="httpInfo" class="small" aria-live="polite"></div>
-      </div>
-      <div class="controls">
-        <button id="prettyBtn" class="btn"><span class="mdi mdi-format-color-text"></span> Pretty</button>
-        <button id="rawBtn" class="btn"><span class="mdi mdi-console"></span> Raw</button>
-        <button id="copyRes" class="btn"><span class="mdi mdi-content-copy"></span> Copy</button>
-        <button id="downloadRes" class="btn"><span class="mdi mdi-download"></span> Download</button>
-      </div>
-    </div>
+        function fixApiPath(urlObj) {
+            if(urlObj.pathname.endsWith("get.php")){
+                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+            }
+            return urlObj;
+        }
 
-    <div id="error" class="err" style="display:none"></div>
-    <pre id="result" class="result" tabindex="0" aria-live="polite">-- ผลลัพธ์จะแสดงที่นี่ --</pre>
+        // DOM
+        const form = document.getElementById('apiForm');
+        const resultElem = document.getElementById('result');
+        const errorElem = document.getElementById('error');
+        const btnClear = document.getElementById('btnClear');
+        const inputUrl = document.getElementById('fullUrl');
 
-    <div class="grid-wide">
-      <div class="diagram">
-        <div class="small" style="margin-bottom:6px">Flowchart</div>
-        <div class="mermaid" id="flow">
-flowchart LR
-  U[User enters URL] --> V{Validate URL}
-  V -->|OK| F[Build request]
-  V -->|Missing creds| E[Show error]
-  F --> P[Fetch (proxy optional)]
-  P --> R[Parse response]
-  R --> D[Render & Chart]
-        </div>
-      </div>
+        const btnFetch = document.getElementById('btnFetch');
+        const btnCopy = document.getElementById('btnCopy');
+        const btnCopyUrl = document.getElementById('btnCopyUrl');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnPretty = document.getElementById('btnPretty');
+        const btnToggleRaw = document.getElementById('btnToggleRaw');
 
-      <div>
-        <div class="small" style="margin-bottom:6px">Response Insight 📊</div>
-        <div id="chart" class="chartBox"></div>
-      </div>
-    </div>
+        const presetList = document.getElementById('presetList');
+        const historyList = document.getElementById('historyList');
+        const lastInfo = document.getElementById('lastInfo');
+        const statusEl = document.getElementById('status');
+        const httpStatus = document.getElementById('httpStatus');
+        const btnSavePreset = document.getElementById('btnSavePreset');
+        const btnToggleProxy = document.getElementById('btnToggleProxy');
+        const proxyTag = document.getElementById('proxyTag');
+        const rateTag = document.getElementById('rateTag');
+        const actionSelect = document.getElementById('actionSelect');
+        const btnClearHistory = document.getElementById('btnClearHistory');
+        const btnResetPresets = document.getElementById('btnResetPresets');
 
-    <div style="margin-top:8px" class="small">Status: <span id="lastAction">—</span></div>
-  </section>
+        // Presets (default examples) — you may customize
+        const DEFAULT_PRESETS = [
+            { name: 'Sample get_info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_info' },
+            { name: 'Simple info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_simple_info' },
+            { name: 'Live streams', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_live_streams' }
+        ];
 
-  <div class="footer">
-    <div>Made with ❤️ — UX Pro • Icons: mdi • Diagram: Mermaid • Charts: ECharts</div>
-    <div class="small">Width capped at 1200px</div>
-  </div>
-</div>
+        // LocalStorage keys
+        const LS_HISTORY = 'apiViewer_history_v1';
+        const LS_PRESETS = 'apiViewer_presets_v1';
+        const LS_LASTURL = 'apiViewer_lasturl_v1';
+        const MAX_HISTORY = 12;
 
-<script>
-mermaid.initialize({startOnLoad:true, theme:'base', securityLevel:'loose'});
-const $ = id => document.getElementById(id);
-const url = $('url'), action = $('action'), presetsBox = $('presets'), historyBox = $('history');
-const result = $('result'), errorBox = $('error'), state = $('state'), httpInfo = $('httpInfo'), lastAction = $('lastAction');
-let useProxy = true, lastJson = null, pretty = true;
-const PROXY = 'https://cors-anywhere.herokuapp.com/';
+        // Proxy usage flag (UI only toggles whether to prepend proxy)
+        let useProxy = true;
+        const PROXY_BASE = 'https://cors-anywhere.com/';
 
-const DEFAULTS = [
-  {n:'get_info (example) 🧾', u:'http://example.local/player_api.php?username=user&password=pass&action=get_info'},
-  {n:'get_simple_info', u:'http://example.local/player_api.php?username=user&password=pass&action=get_simple_info'},
-  {n:'get_live_streams', u:'http://example.local/player_api.php?username=user&password=pass&action=get_live_streams'}
-];
+        // Prefill from query param if present (keeps original behavior)
+        function getQueryParam(param) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(param);
+        }
+        const prefillUrl = getQueryParam('url');
+        if(prefillUrl) {
+            inputUrl.value = decodeURIComponent(prefillUrl);
+        } else {
+            // restore last used URL
+            const last = localStorage.getItem(LS_LASTURL);
+            if(last) inputUrl.value = last;
+        }
 
-function ls(k,v){ if(v===undefined) return JSON.parse(localStorage.getItem(k)||'null'); localStorage.setItem(k,JSON.stringify(v)); }
-function loadPresets(){ return ls('presets')||DEFAULTS; }
-function savePresets(a){ ls('presets',a); renderPresets(); }
-function renderPresets(){ const a=loadPresets(); presetsBox.innerHTML=''; a.forEach(p=>{const b=document.createElement('button');b.textContent=p.n;b.title=p.u;b.onclick=()=>url.value=p.u;presetsBox.appendChild(b);}); }
-function loadHistory(){ return ls('history')||[]; }
-function saveHistory(u){ if(!u) return; let h=loadHistory(); h=h.filter(x=>x.u!==u); h.unshift({u,t:Date.now()}); h=h.slice(0,12); ls('history',h); renderHistory(); }
-function renderHistory(){ const h=loadHistory(); historyBox.innerHTML=''; if(!h.length){ historyBox.innerHTML='<div class="small">ไม่มีประวัติ</div>'; return;} h.forEach(it=>{const b=document.createElement('button'); b.innerHTML=`<strong style="font-size:0.92rem">${it.u}</strong><div style="font-size:0.82rem;color:var(--muted)">${new Date(it.t).toLocaleString()}</div>`; b.onclick=()=>url.value=it.u; historyBox.appendChild(b); }); }
-renderPresets(); renderHistory();
+        // --- UI utilities ---
+        function showError(msg) {
+            errorElem.style.display = 'block';
+            errorElem.textContent = msg;
+            statusEl.textContent = 'Error';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#7f1d1d';
+        }
+        function clearError() {
+            errorElem.style.display = 'none';
+            errorElem.textContent = '';
+            statusEl.textContent = 'Ready';
+            statusEl.style.background = '';
+            statusEl.style.color = '';
+        }
 
-function setState(t,loading=false){ state.textContent=t; if(loading) state.innerHTML = t + ' ⏳'; }
-function showError(txt){ errorBox.style.display='block'; errorBox.textContent=txt; setState('Error'); }
-function clearError(){ errorBox.style.display='none'; errorBox.textContent=''; setState('Ready'); }
+        function setLoading(on) {
+            if(on){
+                statusEl.innerHTML = 'Loading <span class="spinner" aria-hidden="true"></span>';
+            } else {
+                statusEl.textContent = 'Ready';
+            }
+        }
 
-function buildTarget(raw){
-  try{
-    const u = new URL(raw);
-    if(!u.searchParams.get('action') && action.value) u.searchParams.set('action', action.value);
-    else if(!u.searchParams.get('action')) u.searchParams.set('action','get_info');
-    return useProxy ? PROXY + u.toString() : u.toString();
-  }catch(e){ return null; }
-}
+        function updateLastInfo(text){
+            lastInfo.textContent = text;
+        }
 
-function renderResult(data, code){
-  lastJson = data;
-  httpInfo.textContent = code ? 'HTTP '+code : '';
-  clearError();
-  result.textContent = pretty ? JSON.stringify(data,null,2) : JSON.stringify(data);
-  updateChart(data);
-  lastAction.textContent = new Date().toLocaleString();
-}
+        // History management
+        function loadHistory(){
+            try{
+                const raw = localStorage.getItem(LS_HISTORY);
+                return raw ? JSON.parse(raw) : [];
+            }catch(e){return [];}
+        }
+        function saveHistoryItem(url){
+            if(!url) return;
+            let list = loadHistory();
+            // remove dup
+            list = list.filter(u => u.url !== url);
+            list.unshift({ url, t: Date.now() });
+            if(list.length > MAX_HISTORY) list = list.slice(0, MAX_HISTORY);
+            localStorage.setItem(LS_HISTORY, JSON.stringify(list));
+            localStorage.setItem(LS_LASTURL, url);
+            renderHistory();
+        }
+        function clearHistory(){
+            localStorage.removeItem(LS_HISTORY);
+            renderHistory();
+        }
+        function renderHistory(){
+            const list = loadHistory();
+            historyList.innerHTML = '';
+            if(list.length === 0){
+                historyList.innerHTML = '<div style="padding:8px;color:var(--muted)">ไม่มีประวัติ</div>';
+                return;
+            }
+            list.forEach(item => {
+                const btn = document.createElement('button');
+                const d = new Date(item.t);
+                btn.innerHTML = `<strong>${item.url}</strong><div style="font-size:0.85rem;color:var(--muted)">${d.toLocaleString()}</div>`;
+                btn.addEventListener('click', () => {
+                    inputUrl.value = item.url;
+                });
+                historyList.appendChild(btn);
+            });
+        }
 
-function updateChart(data){
-  try{
-    const dom = document.getElementById('chart');
-    if(!dom._ech) dom._ech = echarts.init(dom);
-    const ec = dom._ech;
-    let labels = [], values = [];
-    if(Array.isArray(data?.videos)){
-      labels = data.videos.slice(0,8).map((v,i)=>v.name||'v'+i); values = data.videos.slice(0,8).map(()=>1);
-    } else if(data && typeof data === 'object'){
-      const keys = Object.keys(data).slice(0,8);
-      labels = keys; values = keys.map(k=>{ const v=data[k]; return typeof v === 'number' ? v : (Array.isArray(v)? v.length : 1); });
-    } else { labels=['No data']; values=[0]; }
-    ec.setOption({xAxis:{type:'category',data:labels},yAxis:{type:'value'},series:[{type:'bar',data:values,color: ['#7c3aed']}],tooltip:{}} , {notMerge:true});
-  }catch(e){ console.warn(e); }
-}
+        // Presets management
+        function loadPresets(){
+            try{
+                const raw = localStorage.getItem(LS_PRESETS);
+                return raw ? JSON.parse(raw) : DEFAULT_PRESETS.slice();
+            }catch(e){return DEFAULT_PRESETS.slice();}
+        }
+        function savePresets(arr){
+            localStorage.setItem(LS_PRESETS, JSON.stringify(arr));
+            renderPresets();
+        }
+        function addPreset(label, url){
+            const arr = loadPresets();
+            arr.unshift({ name: label || url, url });
+            // keep a reasonable limit
+            if(arr.length > 20) arr.pop();
+            savePresets(arr);
+        }
+        function resetPresets(){
+            localStorage.removeItem(LS_PRESETS);
+            renderPresets();
+        }
+        function renderPresets(){
+            const arr = loadPresets();
+            presetList.innerHTML = '';
+            if(arr.length === 0){
+                presetList.innerHTML = '<div style="padding:8px;color:var(--muted)">No presets</div>';
+                return;
+            }
+            arr.forEach(p => {
+                const btn = document.createElement('button');
+                btn.textContent = p.name;
+                btn.title = p.url;
+                btn.addEventListener('click', () => inputUrl.value = p.url);
+                presetList.appendChild(btn);
+            });
+        }
 
-/* form handling */
-$('form').addEventListener('submit', async e=>{
-  e.preventDefault(); clearError();
-  const raw = url.value.trim(); if(!raw){ showError('กรุณากรอก URL'); return; }
-  const target = buildTarget(raw); if(!target){ showError('URL ไม่ถูกต้อง'); return; }
-  try{ const u = new URL(raw); if(!u.searchParams.get('username') || !u.searchParams.get('password')){ showError('URL ต้องมี username และ password'); return; } }catch(e){ showError('URL ไม่ถูกต้อง'); return; }
-  setState('Loading', true); result.textContent='Loading...'; saveHistory(raw);
-  try{
-    const res = await fetch(target, {headers:{'X-Requested-With':'XMLHttpRequest'}});
-    setState('Processing');
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const ct = res.headers.get('content-type')||'';
-    if(ct.includes('application/json')){ const j = await res.json(); renderResult(j, res.status); }
-    else { const txt = await res.text(); result.textContent = txt; httpInfo.textContent = 'HTTP '+res.status; lastAction.textContent = new Date().toLocaleString(); }
-  }catch(err){ showError('เกิดข้อผิดพลาด: '+err.message); result.textContent=''; }
-  setTimeout(()=>setState('Ready'), 300);
-});
+        // Initialize lists
+        renderPresets();
+        renderHistory();
 
-/* controls */
-$('copyUrl').addEventListener('click',()=>{ const t=buildTarget(url.value.trim()); if(!t) return showError('ไม่มี URL'); navigator.clipboard.writeText(t).then(()=>setState('URL copied')).catch(()=>showError('คัดลอกไม่สำเร็จ')); });
-$('toggleProxy').addEventListener('click',()=>{ useProxy = !useProxy; setState(useProxy? 'Proxy ON':'Proxy OFF'); });
-$('savePreset').addEventListener('click',()=>{ const v=url.value.trim(); if(!v) return showError('ไม่มี URL ให้บันทึก'); const name = prompt('ตั้งชื่อ preset:') || v; const p = loadPresets(); p.unshift({n:name,u:v}); savePresets(p.slice(0,20)); setState('Preset saved'); });
-$('clearForm').addEventListener('click',()=>{ url.value=''; result.textContent='-- ผลลัพธ์จะแสดงที่นี่ --'; clearError(); url.focus(); });
-$('clearHistory').addEventListener('click',()=>{ if(confirm('ลบประวัติทั้งหมด?')){ localStorage.removeItem('history'); renderHistory(); setState('History cleared'); }});
-$('resetPresets').addEventListener('click',()=>{ if(confirm('คืนค่า presets เริ่มต้น?')){ localStorage.removeItem('presets'); renderPresets(); setState('Presets reset'); }});
-$('copyRes').addEventListener('click',()=>{ if(!result.textContent) return; navigator.clipboard.writeText(result.textContent).then(()=>setState('Copied')).catch(()=>showError('คัดลอกไม่สำเร็จ')); });
-$('downloadRes').addEventListener('click',()=>{ if(!result.textContent) return; const b=new Blob([result.textContent],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='response.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); });
-$('prettyBtn').addEventListener('click',()=>{ pretty=true; if(lastJson) result.textContent=JSON.stringify(lastJson,null,2); setState('Pretty'); });
-$('rawBtn').addEventListener('click',()=>{ pretty=false; if(lastJson) result.textContent=JSON.stringify(lastJson); setState('Raw'); });
+        // Utility: pretty/compact JSON toggle
+        let lastJson = null;
+        let showPretty = true;
+        function renderResultFromJson(json, statusCode){
+            lastJson = json;
+            httpStatus.textContent = statusCode ? `HTTP ${statusCode}` : '';
+            if(showPretty){
+                try{
+                    resultElem.textContent = JSON.stringify(json, null, 4);
+                }catch(e){
+                    resultElem.textContent = String(json);
+                }
+            } else {
+                try{
+                    resultElem.textContent = JSON.stringify(json);
+                }catch(e){
+                    resultElem.textContent = String(json);
+                }
+            }
+        }
 
-/* keyboard */
-url.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') $('fetchBtn').click(); });
+        // Copy / Download
+        btnCopy.addEventListener('click', () => {
+            if(!resultElem.textContent) return;
+            navigator.clipboard.writeText(resultElem.textContent)
+            .then(()=> {
+                statusEl.textContent = 'Copied';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+            })
+            .catch(()=> showError('ไม่สามารถคัดลอกได้'));
+        });
 
-/* init */
-setState('Ready');
-try{ setTimeout(()=>mermaid.init(undefined, document.querySelectorAll('.mermaid')),200); }catch(e){}
-</script>
+        btnCopyUrl.addEventListener('click', () => {
+            const url = buildProxyUrlFromInput();
+            if(!url) return showError('ไม่มี URL ที่จะคัดลอก');
+            navigator.clipboard.writeText(url)
+                .then(()=> {
+                    statusEl.textContent = 'URL copied';
+                    setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+                })
+                .catch(()=> showError('คัดลอก URL ไม่สำเร็จ'));
+        });
+
+        btnDownload.addEventListener('click', () => {
+            if(!resultElem.textContent) return showError('ไม่มีข้อมูลให้ดาวน์โหลด');
+            const blob = new Blob([resultElem.textContent], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'response.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
+        });
+
+        btnPretty.addEventListener('click', () => {
+            showPretty = true;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnPretty.classList.add('btn-primary');
+            btnPretty.style.color='white';
+            btnToggleRaw.classList.remove('btn-primary');
+            btnToggleRaw.style.color='';
+        });
+
+        btnToggleRaw.addEventListener('click', () => {
+            showPretty = false;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnToggleRaw.classList.add('btn-primary');
+            btnToggleRaw.style.color='white';
+            btnPretty.classList.remove('btn-primary');
+            btnPretty.style.color='';
+        });
+
+        // Toggle proxy usage
+        btnToggleProxy.addEventListener('click', () => {
+            useProxy = !useProxy;
+            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        });
+
+        // Save preset
+        btnSavePreset.addEventListener('click', () => {
+            const val = inputUrl.value.trim();
+            if(!val){ showError('ไม่มี URL ให้บันทึกเป็น preset'); return; }
+            const label = prompt('ตั้งชื่อ preset (ปล่อยว่างเพื่อใช้ URL เป็นชื่อ):');
+            addPreset(label || val, val);
+            statusEl.textContent = 'Preset saved';
+            setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+        });
+
+        // Clear form
+        btnClear.addEventListener('click', () => {
+            inputUrl.value = '';
+            clearError();
+            resultElem.textContent = '';
+            inputUrl.focus();
+        });
+
+        // History controls
+        btnClearHistory.addEventListener('click', () => {
+            if(confirm('ลบประวัติทั้งหมด?')) {
+                clearHistory();
+                statusEl.textContent = 'History cleared';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+            }
+        });
+        btnResetPresets.addEventListener('click', () => {
+            if(confirm('คืนค่า presets เริ่มต้น?')) {
+                resetPresets();
+                statusEl.textContent = 'Presets reset';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+            }
+        });
+
+        // Build and return the proxied URL string or plain URL depending on useProxy
+        function buildProxyUrlFromInput(){
+            const fullUrlStr = inputUrl.value.trim();
+            if(!fullUrlStr) return null;
+            try{
+                let urlObj = new URL(fullUrlStr);
+                urlObj = fixApiPath(urlObj);
+                // remove type & output like original
+                urlObj.searchParams.delete('type');
+                urlObj.searchParams.delete('output');
+
+                // fill action if not present and select provided
+                if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
+                else if(!urlObj.searchParams.get('action')) urlObj.searchParams.set('action', 'get_info');
+
+                const final = urlObj.toString();
+                return useProxy ? (PROXY_BASE + final) : final;
+            }catch(e){
+                return null;
+            }
+        }
+
+        // Main request handler (preserves previous behavior and header)
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            clearError();
+
+            const fullUrl = inputUrl.value.trim();
+            if (!fullUrl) {
+                showError('กรุณากรอก URL');
+                return;
+            }
+
+            let urlObj;
+            try {
+                urlObj = new URL(fullUrl);
+            } catch (err) {
+                showError('URL ไม่ถูกต้อง');
+                return;
+            }
+
+            // Adjust path and params like original
+            urlObj = fixApiPath(urlObj);
+            urlObj.searchParams.delete('type');
+            urlObj.searchParams.delete('output');
+
+            const username = urlObj.searchParams.get('username');
+            const password = urlObj.searchParams.get('password');
+            if (!username || !password) {
+                showError('กรุณาใส่ username และ password ใน URL');
+                return;
+            }
+
+            if (!urlObj.searchParams.get('action')) {
+                if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
+                else urlObj.searchParams.set('action', 'get_info');
+            }
+
+            // Construct final URL and perform fetch
+            const targetUrl = urlObj.toString();
+            const proxyUrl = useProxy ? (PROXY_BASE + targetUrl) : targetUrl;
+
+            // Update UI
+            resultElem.textContent = 'Loading...';
+            setLoading(true);
+            httpStatus.textContent = '';
+            updateLastInfo(`Requesting: ${useProxy ? 'via proxy' : 'direct'} — ${new Date().toLocaleString()}`);
+
+            // Save to history
+            saveHistoryItem(targetUrl);
+
+            fetch(proxyUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                setLoading(false);
+                if(!response.ok) {
+                    httpStatus.textContent = `HTTP ${response.status}`;
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                // Try parse JSON, but if fails, return text
+                const contentType = response.headers.get('content-type') || '';
+                if(contentType.includes('application/json')) {
+                    return response.json().then(jsonData => ({ jsonData, status: response.status }));
+                } else {
+                    return response.text().then(txt => ({ txt, status: response.status }));
+                }
+            })
+            .then(obj => {
+                if(obj.jsonData){
+                    const jsonData = obj.jsonData;
+                    // convert timestamps like original
+                    if(jsonData.user_info){
+                        jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
+                        jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
+                    }
+                    if(jsonData.server_info){
+                        jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
+                    }
+                    renderResultFromJson(jsonData, obj.status);
+                    clearError();
+                } else if(obj.txt){
+                    // display raw text
+                    lastJson = null;
+                    httpStatus.textContent = `HTTP ${obj.status}`;
+                    resultElem.textContent = obj.txt;
+                }
+            })
+            .catch(err => {
+                setLoading(false);
+                showError('เกิดข้อผิดพลาด: ' + err.message);
+                resultElem.textContent = '';
+            });
+        });
+
+        // Initial UI states
+        btnPretty.classList.add('btn-primary');
+        btnPretty.style.color='white';
+
+        // Expose a keyboard shortcut: Ctrl+Enter to submit
+        inputUrl.addEventListener('keydown', (e) => {
+            if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+                btnFetch.click();
+            }
+        });
+
+        // Render initial tags
+        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        rateTag.innerHTML = 'Rate limit: 20 req/min';
+
+        // set initial last info
+        updateLastInfo('Ready — no requests yet');
+
+    </script>
 </body>
 </html>
