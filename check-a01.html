@@ -1,279 +1,261 @@
-<!doctype html>
+<! — copy the following HTML/JS into your file —>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IPTV Studio — M3U Parser & Web Player</title>
-
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
-
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
-
-  <style>
-    :root{
-      --bg:#071226;--card:#07162a;--muted:#9fb0c8;--accent1:#60a5fa;--accent2:#2dd4bf;
-      --glass: rgba(255,255,255,0.03);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      color-scheme: dark;color:#e6eef6;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071226 0%, #031226 100%);-webkit-font-smoothing:antialiased}
-    .app{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:24px;min-height:100vh}
-    .panel{background:linear-gradient(180deg,var(--card),#041226);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
-    header.brand{display:flex;gap:12px;align-items:center;margin-bottom:8px}
-    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;color:#022;font-weight:800;font-size:16px}
-    .title{font-weight:700;font-size:16px;margin:0}
-    .subtitle{font-size:12px;color:var(--muted);margin-top:2px}
-    nav a{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;color:var(--muted);text-decoration:none;margin-top:8px}
-    nav a:hover{background:rgba(255,255,255,0.02);color:#fff}
-    .hint{font-size:12px;color:var(--muted);margin-top:12px}
-
-    /* main area */
-    main{display:flex;flex-direction:column;gap:14px}
-    .row{display:flex;gap:14px}
-    .controls{display:flex;gap:8px;align-items:center}
-    input[type=url], input[type=text]{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);color:inherit}
-    .btn{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#022;padding:9px 12px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-    .channels{max-height:56vh;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
-    .ch{display:flex;gap:12px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(90deg,rgba(255,255,255,0.01),transparent)}
-    .thumb{width:64px;height:44px;border-radius:8px;background:#0a1220;display:flex;align-items:center;justify-content:center;font-weight:700}
-    .meta h4{margin:0;font-size:14px}
-    .meta p{margin:6px 0 0 0;font-size:12px;color:var(--muted)}
-    .play-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
-
-    #video{width:100%;height:320px;background:#000;border-radius:10px}
-    .side-top{display:flex;gap:12px;align-items:center;justify-content:space-between}
-    .charts{display:flex;gap:12px;margin-top:10px}
-    #chartGroups,#chartProto{height:160px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
-    .mermaid-wrap{padding:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:8px;margin-top:10px}
-    footer{color:var(--muted);font-size:13px;padding:8px;text-align:center;margin-top:8px}
-
-    @media (max-width:980px){
-      .app{grid-template-columns:1fr; padding:12px}
-      #video{height:220px}
-      .row{flex-direction:column}
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Viewer (ปรับปรุง)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        * { box-sizing: border-box; }
+        body { background: #f0f2f5; margin:0; font-family:'Inter',sans-serif; display:flex; justify-content:center; padding:30px 15px; min-height:100vh; }
+        .container { background:white; padding:30px 40px; border-radius:12px; max-width:800px; width:100%; box-shadow:0 12px 24px rgba(0,0,0,0.12); display:flex; flex-direction:column; gap:20px; }
+        h1 { margin:0; font-weight:600; font-size:1.6rem; text-align:center; }
+        label { font-weight:600; margin-bottom:6px; color:#444; display:block; }
+        input[type="text"], input[type="url"] { width:100%; padding:10px 14px; border-radius:8px; border:1.8px solid #ccc; font-size:1rem; margin:10px 0; }
+        .btn-group { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+        button { padding:12px 18px; font-size:1rem; font-weight:600; border:none; border-radius:10px; cursor:pointer; min-width:120px; }
+        #btnFetch { background:#4f46e5; color:white; box-shadow:0 6px 12px rgba(79,70,229,0.28); }
+        #btnClear { background:#e02424; color:white; }
+        #result { background:#1e1e2f; color:#d4d4fc; font-family:monospace; border-radius:12px; padding:16px; min-height:220px; overflow:auto; white-space:pre-wrap; }
+        .error { color:#e02424; background:#ffecec; padding:10px; border-radius:8px; border:1px solid #e02424; display:none; }
+        .hint { font-size:0.9rem; color:#666; }
+        .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; margin-left:8px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @media (max-width:480px) { .container { padding:16px; } }
+    </style>
 </head>
 <body>
-  <div class="app" role="application" aria-label="IPTV Studio">
-    <aside class="panel" aria-label="Sidebar">
-      <header class="brand">
-        <div class="logo">IPTV</div>
-        <div>
-          <div class="title">IPTV Studio</div>
-          <div class="subtitle">M3U Parser • Web Player • Analytics</div>
-        </div>
-      </header>
+    <div class="container" role="main">
+        <h1>API Viewer (ปรับปรุง)</h1>
 
-      <nav aria-label="Main nav">
-        <a href="#"><span class="mdi mdi-database"></span>&nbsp;Load M3U</a>
-        <a href="#"><span class="mdi mdi-play-circle"></span>&nbsp;Channels</a>
-        <a href="#"><span class="mdi mdi-chart-donut"></span>&nbsp;Insights</a>
-        <a href="#"><span class="mdi mdi-cog-outline"></span>&nbsp;Settings</a>
-      </nav>
+        <form id="apiForm" autocomplete="off" aria-label="Form for inputting API URL with credentials">
+            <label for="fullUrl">API URL ที่มี username &amp; password (หรือใส่แบบมีเฉพาะ host แล้วเพิ่มในฟอร์ม):</label>
+            <input type="url" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=yyy" required aria-required="true" />
+            <div class="hint">คำเตือน: การใส่ username/password ใน URL เสี่ยงต่อการถูกบันทึกใน history/logs — ควรใช้วิธีที่ปลอดภัยกว่าใน production</div>
 
-      <div class="hint">Tip: If remote URL is blocked by CORS use the built‑in proxy toggle or upload a file.</div>
-      <div style="margin-top:14px;font-size:13px;color:var(--muted)">
-        <div><span class="mdi mdi-server"></span>&nbsp;Proxy: <span id="proxyState">OFF</span></div>
-        <div style="margin-top:8px"><span class="mdi mdi-flash"></span>&nbsp;HLS via hls.js (autodetect)</div>
-      </div>
-    </aside>
-
-    <main>
-      <section class="panel">
-        <div class="side-top">
-          <div>
-            <strong style="font-size:16px">นำเข้า M3U / m3u8</strong>
-            <div style="font-size:13px;color:var(--muted)">วาง URL หรืออัปโหลดไฟล์ .m3u/.m3u8</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn" id="fetchBtn"><span class="mdi mdi-cloud-download-outline"></span>&nbsp;Fetch</button>
-            <button class="btn ghost" id="proxyBtn" title="Toggle CORS proxy"><span class="mdi mdi-shield-half-full"></span>&nbsp;Proxy</button>
-          </div>
-        </div>
-
-        <div style="margin-top:12px" class="controls">
-          <input id="urlInput" type="url" placeholder="วางลิงก์ M3U ที่นี่ เช่น https://example.com/playlist.m3u8">
-          <input id="fileInput" type="file" accept=".m3u,.m3u8,text/plain" style="display:none">
-          <button class="btn ghost" id="uploadBtn"><span class="mdi mdi-upload"></span>&nbsp;Upload</button>
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn" id="exportJson">Export JSON</button>
-          <button class="btn ghost" id="copyJson">Copy JSON</button>
-          <button class="btn ghost" id="downloadClean">Download M3U</button>
-          <div id="status" style="margin-left:auto;color:var(--muted);font-size:13px">Ready</div>
-        </div>
-      </section>
-
-      <div class="row">
-        <section class="panel" style="flex:1">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <strong>รายการช่อง</strong>
-            <div style="font-size:13px;color:var(--muted)"><span id="count">0</span> ช่อง</div>
-          </div>
-
-          <div class="channels" id="channels" aria-live="polite" style="margin-top:10px"></div>
-        </section>
-
-        <aside class="panel" style="width:520px;display:flex;flex-direction:column">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <strong>Player Preview</strong>
-            <div style="font-size:13px;color:var(--muted)">HLS · HTTP · MP4</div>
-          </div>
-
-          <video id="video" controls playsinline></video>
-
-          <div class="charts">
-            <div id="chartGroups" style="flex:1"></div>
-            <div id="chartProto" style="width:180px"></div>
-          </div>
-
-          <div class="mermaid-wrap">
-            <strong style="font-size:13px">Flow</strong>
-            <div class="mermaid" id="mermaid">
-flowchart LR
-  A[User] --> B[Load M3U URL / File]
-  B --> C{Parser}
-  C --> D[List UI]
-  D --> E[Player (HLS/native)]
-  E --> F[Metrics & Charts]
+            <div style="display:flex; gap:10px; margin-top:10px; align-items:center;">
+                <div class="btn-group" style="margin:0;">
+                    <button type="submit" id="btnFetch">Get Info</button>
+                    <button type="button" id="btnClear">Clear</button>
+                </div>
+                <div id="loadingArea" aria-hidden="true" style="min-width:120px; display:flex; align-items:center; justify-content:flex-end;">
+                    <!-- loading indicator -->
+                </div>
             </div>
-          </div>
-        </aside>
-      </div>
+        </form>
 
-      <footer class="panel" style="text-align:center">© IPTV Studio — Built for web playback • Use responsibly</footer>
-    </main>
-  </div>
+        <div class="error" id="error" role="alert" aria-live="polite"></div>
 
-<script>
-  mermaid.initialize({ startOnLoad:true, theme: 'dark', flowchart:{curve:'basis'} });
-  const $ = s => document.querySelector(s);
-  let channels = [], useProxy = false, hls = null;
-  const status = $('#status'), list = $('#channels'), countEl = $('#count'), proxyState = $('#proxyState');
+        <pre id="result" aria-live="polite" aria-label="API response output"></pre>
+    </div>
 
-  function setStatus(t, err=false){ status.textContent = t; status.style.color = err ? '#fb7185' : 'var(--muted)'; }
+    <script>
+        // Utility: convert Unix timestamp (seconds) to readable
+        function convertTimestamp(ts) {
+            const t = Number(ts);
+            if (!Number.isFinite(t)) return ts;
+            try {
+                const d = new Date(t * 1000);
+                if (isNaN(d)) return ts;
+                return d.toISOString().replace('T', ' ').substr(0, 19);
+            } catch (e) {
+                return ts;
+            }
+        }
 
-  function parseEXTINF(line){
-    const info = {title:'',tvg_id:'',tvg_name:'',tvg_logo:'',group:''};
-    const m = line.match(/^#EXTINF:[^-]*,(.*)$/i);
-    if(m) info.title = m[1].trim();
-    const attrRe = /([\w-]+)=["']([^"']*)["']/g;
-    let attrs = line.split('#EXTINF:')[1] || '';
-    let r; while((r=attrRe.exec(attrs))){ const k=r[1].toLowerCase(), v=r[2]; if(k.includes('tvg-id')) info.tvg_id=v; else if(k.includes('tvg-name')) info.tvg_name=v; else if(k.includes('tvg-logo')) info.tvg_logo=v; else if(k.includes('group-title')) info.group=v; else info[k]=v; }
-    return info;
-  }
+        const form = document.getElementById('apiForm');
+        const resultElem = document.getElementById('result');
+        const errorElem = document.getElementById('error');
+        const btnClear = document.getElementById('btnClear');
+        const inputUrl = document.getElementById('fullUrl');
+        const btnFetch = document.getElementById('btnFetch');
+        const loadingArea = document.getElementById('loadingArea');
 
-  function parseM3U(text){
-    const lines = text.split(/\r?\n/);
-    const out = []; let last = null;
-    for(let l of lines){ l = l.trim(); if(!l) continue;
-      if(l.startsWith('#EXTINF')) last = parseEXTINF(l);
-      else if(l.startsWith('#')) continue;
-      else { const item = last ? {...last} : {title:''}; item.url = l; if(!item.title) item.title = item['tvg-name'] || item.tvg_id || l.split('/').pop() || l; out.push(item); last = null; }
-    }
-    return out;
-  }
+        // เริ่มต้น: ถ้ามี ?url= ใน query string ให้ prefill
+        function getQueryParam(param) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(param);
+        }
+        const prefillUrl = getQueryParam('url');
+        if (prefillUrl) inputUrl.value = decodeURIComponent(prefillUrl);
 
-  function render(){
-    list.innerHTML = ''; channels.forEach((c,i)=>{
-      const div = document.createElement('div'); div.className='ch';
-      const logo = c.tvg_logo || '';
-      div.innerHTML = `<div class="thumb">${logo ? `<img src="${escape(c.tvg_logo)}" alt="" style="max-width:100%;max-height:100%;border-radius:6px">` : chooseEmoji(c.group)}</div>
-        <div class="meta"><h4 title="${escape(c.title)}">${escape(c.title)}</h4><p>${escape(c.group||'Ungrouped')} • ID:${escape(c.tvg_id||'-')}</p><div style="font-size:12px;color:var(--muted);margin-top:6px">${shorten(c.url,70)}</div></div>
-        <div class="play-actions">
-          <button class="btn" onclick="play(${i})"><span class='mdi mdi-play'></span>&nbsp;เล่น</button>
-          <button class="btn ghost" onclick="window.open('${escapeUrlForAttr(c.url)}','_blank')" title="Open"><span class='mdi mdi-open-in-new'></span></button>
-        </div>`;
-      list.appendChild(div);
-    });
-    countEl.textContent = channels.length;
-    updateCharts();
-  }
+        // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php" (robust)
+        function fixApiPath(urlObj) {
+            // เปลี่ยนเฉพาะเมื่อ pathname ลงท้ายด้วย get.php
+            urlObj.pathname = urlObj.pathname.replace(/\/?get\.php$/i, '/player_api.php');
+            return urlObj;
+        }
 
-  function escape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
-  function escapeUrlForAttr(u){ return encodeURI(u).replace(/'/g,"%27"); }
-  function shorten(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s }
-  function chooseEmoji(g){ if(!g) return '📺'; g=g.toLowerCase(); if(g.includes('news')) return '📰'; if(g.includes('sport')) return '⚽'; if(g.includes('movie')) return '🎬'; if(g.includes('music')) return '🎵'; return '📺'; }
+        // Mask sensitive fields in JSON object before showing
+        function maskSensitive(obj) {
+            if (!obj || typeof obj !== 'object') return obj;
+            const clone = JSON.parse(JSON.stringify(obj)); // deep copy (simple)
+            function walk(o){
+                if (!o || typeof o !== 'object') return;
+                for (const k of Object.keys(o)){
+                    try {
+                        const v = o[k];
+                        if (k.toLowerCase().includes('password')) {
+                            o[k] = '*****';
+                        } else if (k.toLowerCase().includes('username') && typeof v === 'string') {
+                            o[k] = v.length > 3 ? v.substr(0,1) + '***' + v.substr(-1) : '***';
+                        } else if (typeof v === 'object') {
+                            walk(v);
+                        }
+                    } catch(e){}
+                }
+            }
+            walk(clone);
+            return clone;
+        }
 
-  // Playback
-  function play(idx){
-    const item = channels[idx]; if(!item) return;
-    const video = $('#video'); const src = item.url;
-    if(hls){ try{ hls.destroy(); }catch(e){} hls=null; }
-    if(video.canPlayType('application/vnd.apple.mpegurl') || (src.toLowerCase().includes('.m3u8') && /Safari/.test(navigator.userAgent))){
-      video.src = src; video.play().catch(()=>{});
-    } else if(Hls.isSupported() && src.toLowerCase().includes('.m3u8')){
-      hls = new Hls(); hls.loadSource(src); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED, ()=>video.play().catch(()=>{}));
-    } else {
-      // try direct
-      video.src = src; video.play().catch(()=> window.open(src,'_blank'));
-    }
-    setStatus('Playing: ' + item.title);
-  }
+        // Prepare UI state
+        function setLoading(isLoading) {
+            btnFetch.disabled = isLoading;
+            btnClear.disabled = isLoading;
+            if (isLoading) {
+                loadingArea.innerHTML = '<span class="spinner" aria-hidden="true"></span><span style="margin-left:8px;color:#555;font-size:0.95rem;">Loading...</span>';
+            } else {
+                loadingArea.innerHTML = '';
+            }
+        }
 
-  // Fetch / Upload
-  $('#fetchBtn').addEventListener('click', async ()=>{
-    const url = $('#urlInput').value.trim(); if(!url){ setStatus('Please enter a URL',true); return; }
-    setStatus('Downloading...');
-    try{
-      const target = useProxy ? proxy(url) : url;
-      const r = await fetch(target); if(!r.ok) throw new Error('HTTP '+r.status);
-      const t = await r.text(); const parsed = parseM3U(t);
-      if(parsed.length===0) setStatus('No channels found', true); else { channels = parsed; render(); setStatus('Loaded '+parsed.length+' channels'); }
-    }catch(e){ setStatus('Load failed: ' + e.message, true); }
-  });
+        // Show/clear error
+        function showError(msg) {
+            errorElem.style.display = 'block';
+            errorElem.textContent = msg;
+        }
+        function clearError() {
+            errorElem.style.display = 'none';
+            errorElem.textContent = '';
+        }
 
-  $('#uploadBtn').addEventListener('click', ()=> $('#fileInput').click());
-  $('#fileInput').addEventListener('change', async e=>{
-    const f = e.target.files[0]; if(!f) return; setStatus('Reading file...');
-    try{ const t = await f.text(); const parsed = parseM3U(t); channels = parsed; render(); setStatus('Loaded '+parsed.length+' channels'); }catch(err){ setStatus('File read error', true); }
-  });
+        // Build proxy URL function (using public instance by default)
+        const PROXY_ORIGIN = 'https://cors-anywhere.com'; // public example — for production self-host
+        // Note: public proxy may have rate-limits and not suitable for production [(CORS Anywhere)](https://cors-anywhere.com/)
+        function buildProxyFor(urlStr) {
+            // CORS Anywhere expects the target URL path after the origin: /http://target/...
+            // We ensure there's no accidental double slash after origin.
+            const trimmedOrigin = PROXY_ORIGIN.replace(/\/+$/,'');
+            return trimmedOrigin + '/' + urlStr;
+        }
 
-  // Proxy toggle
-  $('#proxyBtn').addEventListener('click', ()=>{ useProxy = !useProxy; proxyState.textContent = useProxy ? 'ON' : 'OFF'; $('#proxyBtn').style.opacity = useProxy ? 1 : 0.9; });
-  function proxy(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); }
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearError();
+            resultElem.textContent = '';
 
-  // Export / Copy / Clean
-  $('#exportJson').addEventListener('click', ()=>{ if(!channels.length){ setStatus('No data',true); return; } download('channels.json', JSON.stringify(channels,null,2)); setStatus('Downloaded JSON'); });
-  $('#copyJson').addEventListener('click', async ()=>{ if(!channels.length){ setStatus('No data',true); return; } try{ await navigator.clipboard.writeText(JSON.stringify(channels,null,2)); setStatus('Copied JSON to clipboard'); }catch(e){ setStatus('Copy failed',true); }});
-  $('#downloadClean').addEventListener('click', ()=>{ if(!channels.length){ setStatus('No data',true); return; } let out='#EXTM3U\n'; channels.forEach(c=>{ const attrs=[]; if(c.tvg_id) attrs.push(`tvg-id="${c.tvg_id}"`); if(c.tvg_name) attrs.push(`tvg-name="${c.tvg_name}"`); if(c.tvg_logo) attrs.push(`tvg-logo="${c.tvg_logo}"`); if(c.group) attrs.push(`group-title="${c.group}"`); out+=`#EXTINF:-1 ${attrs.join(' ')} ,${c.title}\n${c.url}\n`; }); download('clean.m3u', out); setStatus('Downloaded cleaned M3U'); });
+            let raw = inputUrl.value.trim();
+            if (!raw) {
+                showError('กรุณากรอก URL');
+                return;
+            }
 
-  function download(name, text){ const b = new Blob([text], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
+            // Add protocol if missing
+            if (!/^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//.test(raw)) {
+                // default to http (but HTTPS recommended)
+                raw = 'http://' + raw;
+            }
 
-  // Charts
-  const chartGroups = echarts.init(document.getElementById('chartGroups'));
-  const chartProto = echarts.init(document.getElementById('chartProto'));
-  function updateCharts(){
-    const groups={}, proto={};
-    channels.forEach(c=>{ const g=c.group||'Ungrouped'; groups[g]=(groups[g]||0)+1; const p=(c.url||'').split(':')[0]||'other'; proto[p]=(proto[p]||0)+1; });
-    const gdata = Object.keys(groups).map(k=>({name:k,value:groups[k]}));
-    const pdata = Object.keys(proto).map(k=>({name:k,value:proto[k]}));
-    chartGroups.setOption({ title:{text:'Groups',left:8,textStyle:{color:'#e6eef6',fontSize:13}}, tooltip:{}, series:[{type:'pie',radius:['40%','70%'],data:gdata,label:{color:'#cfeafe',formatter:'{b}\\n{d}%'}}]});
-    chartProto.setOption({ title:{text:'Protocols',left:'center',textStyle:{color:'#e6eef6',fontSize:12}}, tooltip:{}, xAxis:{type:'category',data:pdata.map(d=>d.name),axisLine:{show:false}}, yAxis:{type:'value',axisLine:{show:false},splitLine:{show:false}}, series:[{type:'bar',data:pdata.map(d=>d.value),itemStyle:{color:'#2dd4bf'}}]});
-  }
+            let urlObj;
+            try {
+                urlObj = new URL(raw);
+            } catch (e) {
+                showError('URL ไม่ถูกต้อง');
+                return;
+            }
 
-  // small sample to start
-  const sample = `#EXTM3U
-#EXTINF:-1 tvg-id="101" tvg-name="MovieOne HD" tvg-logo="" group-title="Entertainment",MovieOne HD
-https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
-#EXTINF:-1 tvg-id="204" tvg-name="NewsLive" tvg-logo="" group-title="News",NewsLive
-https://test-streams.mux.dev/test_001/stream.m3u8
-#EXTINF:-1 tvg-id="305" tvg-name="Sports Arena" group-title="Sports",Sports Arena
-https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
-`;
-  channels = parseM3U(sample); render(); setStatus('Sample loaded — ready');
+            // Fix path if needed
+            urlObj = fixApiPath(urlObj);
 
-  // responsive charts resize
-  window.addEventListener('resize', ()=>{ chartGroups.resize(); chartProto.resize(); });
+            // Ensure username/password in query params
+            const username = urlObj.searchParams.get('username');
+            const password = urlObj.searchParams.get('password');
+            if (!username || !password) {
+                showError('กรุณาใส่ username และ password ใน URL (query string) หรือใช้วิธีส่ง credential ที่ปลอดภัยกว่า');
+                return;
+            }
 
-</script>
+            // Ensure action
+            if (!urlObj.searchParams.get('action')) {
+                urlObj.searchParams.set('action', 'get_info');
+            }
+
+            // Remove type/output params (as original)
+            urlObj.searchParams.delete('type');
+            urlObj.searchParams.delete('output');
+
+            // Build proxy url
+            const proxyUrl = buildProxyFor(urlObj.toString());
+
+            // UX: set loading and use AbortController for timeout
+            setLoading(true);
+            resultElem.textContent = 'Loading...';
+            const controller = new AbortController();
+            const timeoutMs = 15000; // 15s
+            const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+            try {
+                // Use header X-Requested-With as before (some CORS Anywhere instances expect)
+                const resp = await fetch(proxyUrl, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    signal: controller.signal,
+                });
+
+                clearTimeout(timeout);
+
+                if (!resp.ok) {
+                    throw new Error(`Network response was not ok: ${resp.status} ${resp.statusText}`);
+                }
+
+                // Read text first and try parse JSON safely
+                const text = await resp.text();
+                let parsed = null;
+                try {
+                    parsed = text ? JSON.parse(text) : null;
+                } catch (e) {
+                    // Not JSON — show raw text but warn
+                    resultElem.textContent = 'ไม่สามารถ parse JSON ได้ — raw response:\n\n' + text;
+                    setLoading(false);
+                    return;
+                }
+
+                // Convert known timestamps if present
+                if (parsed && typeof parsed === 'object') {
+                    if (parsed.user_info) {
+                        if (parsed.user_info.exp_date) parsed.user_info.exp_date_readable = convertTimestamp(parsed.user_info.exp_date);
+                        if (parsed.user_info.created_at) parsed.user_info.created_at_readable = convertTimestamp(parsed.user_info.created_at);
+                    }
+                    if (parsed.server_info && parsed.server_info.timestamp_now) {
+                        parsed.server_info.timestamp_now_readable = convertTimestamp(parsed.server_info.timestamp_now);
+                    }
+                }
+
+                // Mask credentials in displayed output (do not show raw username/password)
+                const masked = maskSensitive(parsed);
+
+                resultElem.textContent = JSON.stringify(masked, null, 4);
+
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    showError('Request timed out (' + (timeoutMs/1000) + 's)');
+                } else {
+                    showError('เกิดข้อผิดพลาด: ' + err.message);
+                }
+                resultElem.textContent = '';
+            } finally {
+                clearTimeout(timeout);
+                setLoading(false);
+            }
+        });
+
+        btnClear.addEventListener('click', () => {
+            inputUrl.value = '';
+            clearError();
+            resultElem.textContent = '';
+            inputUrl.focus();
+        });
+    </script>
 </body>
-</html
+</html>
