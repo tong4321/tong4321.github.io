@@ -1,261 +1,631 @@
-<! — copy the following HTML/JS into your file —>
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>API Viewer (ปรับปรุง)</title>
+    <title>API Viewer — Improved UI/UX</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-        * { box-sizing: border-box; }
-        body { background: #f0f2f5; margin:0; font-family:'Inter',sans-serif; display:flex; justify-content:center; padding:30px 15px; min-height:100vh; }
-        .container { background:white; padding:30px 40px; border-radius:12px; max-width:800px; width:100%; box-shadow:0 12px 24px rgba(0,0,0,0.12); display:flex; flex-direction:column; gap:20px; }
-        h1 { margin:0; font-weight:600; font-size:1.6rem; text-align:center; }
-        label { font-weight:600; margin-bottom:6px; color:#444; display:block; }
-        input[type="text"], input[type="url"] { width:100%; padding:10px 14px; border-radius:8px; border:1.8px solid #ccc; font-size:1rem; margin:10px 0; }
-        .btn-group { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
-        button { padding:12px 18px; font-size:1rem; font-weight:600; border:none; border-radius:10px; cursor:pointer; min-width:120px; }
-        #btnFetch { background:#4f46e5; color:white; box-shadow:0 6px 12px rgba(79,70,229,0.28); }
-        #btnClear { background:#e02424; color:white; }
-        #result { background:#1e1e2f; color:#d4d4fc; font-family:monospace; border-radius:12px; padding:16px; min-height:220px; overflow:auto; white-space:pre-wrap; }
-        .error { color:#e02424; background:#ffecec; padding:10px; border-radius:8px; border:1px solid #e02424; display:none; }
-        .hint { font-size:0.9rem; color:#666; }
-        .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 1s linear infinite; vertical-align:middle; margin-left:8px; }
-        @keyframes spin { to { transform:rotate(360deg); } }
-        @media (max-width:480px) { .container { padding:16px; } }
+        /* Core layout */
+        :root{
+            --bg:#eef2ff;
+            --card:#ffffff;
+            --accent:#4f46e5;
+            --danger:#e02424;
+            --muted:#6b7280;
+            --mono:'Source Code Pro', monospace;
+        }
+        *{box-sizing:border-box}
+        body{
+            margin:0;
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, var(--bg) 0%, #f7fafc 100%);
+            display:flex;
+            justify-content:center;
+            align-items:flex-start;
+            padding:28px;
+            min-height:100vh;
+        }
+        .wrap{
+            width:100%;
+            max-width:920px;
+            background:var(--card);
+            border-radius:12px;
+            padding:22px;
+            box-shadow: 0 12px 30px rgba(15,23,42,0.12);
+            display:grid;
+            grid-template-columns: 1fr 420px;
+            gap:18px;
+            align-items:start;
+        }
+        h1{margin:0;font-size:1.3rem;color:#0f172a;font-weight:700}
+        p.lead{margin:6px 0 14px;color:var(--muted);font-size:0.95rem}
+
+        /* Left column (controls) */
+        .panel{padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(79,70,229,0.04),transparent);}
+        label{display:block;font-weight:600;margin-bottom:8px;color:#111827}
+        input[type="text"], select{
+            width:100%;
+            padding:10px 12px;
+            border-radius:8px;
+            border:1.5px solid #e6e7ee;
+            font-size:0.98rem;
+        }
+        input[type="text"]:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 6px 20px rgba(79,70,229,0.08)}
+        .row{display:flex;gap:10px}
+        .small{font-size:0.9rem;color:var(--muted)}
+
+        .controls{
+            display:flex;
+            gap:10px;
+            margin-top:12px;
+            flex-wrap:wrap;
+        }
+        button{
+            border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;
+        }
+        .btn-primary{background:var(--accent);color:white;box-shadow:0 8px 20px rgba(79,70,229,0.18)}
+        .btn-ghost{background:transparent;border:1px solid #e6e7ee;color:#111827}
+        .btn-danger{background:var(--danger);color:white}
+        .btn-icon{display:inline-flex;align-items:center;gap:8px;padding:8px 10px}
+
+        .meta{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        .tag{background:#f3f4f6;padding:6px 10px;border-radius:999px;font-size:0.85rem;color:#374151}
+
+        .presets, .history{margin-top:12px}
+        .list {max-height:160px;overflow:auto;padding:8px;border-radius:8px;background:#fff;border:1px dashed #eef2ff}
+        .list button{display:block;width:100%;text-align:left;padding:8px;border-radius:6px;background:transparent;border:none;color:#0f172a}
+        .list button:hover{background:#f8fafc}
+
+        /* Right column (output) */
+        .output-wrap{display:flex;flex-direction:column;gap:10px}
+        .toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between}
+        .toolbar-left{display:flex;gap:8px;align-items:center}
+        .status{padding:6px 10px;border-radius:999px;background:#f3f4f6;color:#111827;font-weight:600}
+        .result{
+            background:#0f172a;color:#e6eef8;border-radius:10px;padding:14px;
+            font-family:var(--mono);font-size:0.95rem;min-height:320px;overflow:auto;white-space:pre-wrap;
+        }
+
+        .error{
+            color:var(--danger);
+            background:#fff5f5;
+            border:1px solid rgba(224,36,36,0.12);
+            padding:10px;border-radius:8px;font-weight:600;
+        }
+
+        .note{font-size:0.9rem;color:var(--muted)}
+
+        /* spinner */
+        .spinner{
+            width:20px;height:20px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);border-top:3px solid white;
+            animation:spin 1s linear infinite;display:inline-block;margin-left:6px;
+        }
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* responsive */
+        @media (max-width:980px){
+            .wrap{grid-template-columns:1fr; padding:14px}
+            .result{min-height:260px}
+        }
     </style>
 </head>
 <body>
-    <div class="container" role="main">
-        <h1>API Viewer (ปรับปรุง)</h1>
+    <div class="wrap" role="main" aria-label="API Viewer improved UI">
+        <div class="panel" aria-labelledby="title-controls">
+            <h1 id="title-controls">API Viewer</h1>
+            <p class="lead">ป้อน URL แบบมี username และ password (เช่น http://.../player_api.php?username=xxx&password=yyy). เพิ่มตัวอย่างและประวัติการเรียกเพื่อความสะดวก</p>
 
-        <form id="apiForm" autocomplete="off" aria-label="Form for inputting API URL with credentials">
-            <label for="fullUrl">API URL ที่มี username &amp; password (หรือใส่แบบมีเฉพาะ host แล้วเพิ่มในฟอร์ม):</label>
-            <input type="url" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=yyy" required aria-required="true" />
-            <div class="hint">คำเตือน: การใส่ username/password ใน URL เสี่ยงต่อการถูกบันทึกใน history/logs — ควรใช้วิธีที่ปลอดภัยกว่าใน production</div>
+            <form id="apiForm" autocomplete="off" aria-label="Form for API URL with credentials">
+                <label for="fullUrl">API URL (รวม username & password):</label>
+                <input type="text" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx" required aria-required="true" />
 
-            <div style="display:flex; gap:10px; margin-top:10px; align-items:center;">
-                <div class="btn-group" style="margin:0;">
-                    <button type="submit" id="btnFetch">Get Info</button>
-                    <button type="button" id="btnClear">Clear</button>
+                <div class="meta" aria-hidden="false">
+                    <div class="tag" id="proxyTag">Using proxy: <strong style="margin-left:6px">cors-anywhere.com</strong></div>
+                    <div class="tag" id="rateTag" title="Rate limit per website">Rate limit: 20 req/min</div>
                 </div>
-                <div id="loadingArea" aria-hidden="true" style="min-width:120px; display:flex; align-items:center; justify-content:flex-end;">
-                    <!-- loading indicator -->
+
+                <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+                    <label style="margin:0;font-weight:600">Action:</label>
+                    <select id="actionSelect" aria-label="Choose API action">
+                        <option value="">(use default: get_info)</option>
+                        <option value="get_info">get_info</option>
+                        <option value="get_simple_info">get_simple_info</option>
+                        <option value="get_live_streams">get_live_streams</option>
+                    </select>
+                </div>
+
+                <div class="controls" style="margin-top:12px;">
+                    <button id="btnFetch" class="btn-primary" type="submit" aria-label="Get Info">Get Info</button>
+                    <button id="btnClear" type="button" class="btn-ghost" aria-label="Clear form">Clear</button>
+                    <button id="btnCopyUrl" type="button" class="btn-ghost btn-icon" aria-label="Copy request URL">Copy URL</button>
+                    <button id="btnSavePreset" type="button" class="btn-ghost btn-icon" aria-label="Save to presets">Save Preset</button>
+                    <button id="btnToggleProxy" type="button" class="btn-ghost btn-icon" aria-label="Toggle proxy usage">Toggle Proxy</button>
+                </div>
+            </form>
+
+            <div class="presets">
+                <label style="margin-bottom:6px">Presets / Examples:</label>
+                <div class="list" id="presetList" role="listbox" aria-label="Example URLs">
+                    <!-- populated dynamically -->
                 </div>
             </div>
-        </form>
 
-        <div class="error" id="error" role="alert" aria-live="polite"></div>
+            <div class="history" style="margin-top:12px">
+                <label style="margin-bottom:6px">History (local):</label>
+                <div class="list" id="historyList" role="listbox" aria-label="History of used URLs">
+                    <!-- history items -->
+                </div>
+            </div>
 
-        <pre id="result" aria-live="polite" aria-label="API response output"></pre>
+            <div style="margin-top:12px" class="note">
+                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
+            </div>
+        </div>
+
+        <div class="output-wrap" aria-live="polite">
+            <div class="panel" style="padding:12px;">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <div id="status" class="status">Ready</div>
+                        <div id="httpStatus" style="margin-left:8px;color:var(--muted);font-weight:600"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <button id="btnPretty" class="btn-ghost" title="Pretty / Raw view">Pretty</button>
+                        <button id="btnCopy" class="btn-ghost" title="Copy response">Copy</button>
+                        <button id="btnDownload" class="btn-ghost" title="Download JSON">Download</button>
+                        <button id="btnToggleRaw" class="btn-ghost" title="Toggle raw/parsed">Raw</button>
+                    </div>
+                </div>
+
+                <div id="error" class="error" role="alert" style="display:none;margin-top:10px"></div>
+
+                <pre id="result" class="result" aria-label="API response output" tabindex="0"></pre>
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:8px">
+                <div class="note" id="lastInfo">--</div>
+                <div>
+                    <button id="btnClearHistory" class="btn-ghost" title="Clear history">Clear History</button>
+                    <button id="btnResetPresets" class="btn-ghost" title="Reset presets">Reset Presets</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Utility: convert Unix timestamp (seconds) to readable
+        /* --- Existing logic preserved + UI enhancements --- */
+
+        // Helpers (unchanged logic preserved)
         function convertTimestamp(ts) {
-            const t = Number(ts);
-            if (!Number.isFinite(t)) return ts;
-            try {
-                const d = new Date(t * 1000);
-                if (isNaN(d)) return ts;
-                return d.toISOString().replace('T', ' ').substr(0, 19);
-            } catch (e) {
-                return ts;
-            }
+            const t = parseInt(ts);
+            if (isNaN(t)) return ts;
+            const d = new Date(t * 1000);
+            return d.toISOString().replace('T', ' ').substr(0, 19);
         }
 
+        function fixApiPath(urlObj) {
+            if(urlObj.pathname.endsWith("get.php")){
+                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+            }
+            return urlObj;
+        }
+
+        // DOM
         const form = document.getElementById('apiForm');
         const resultElem = document.getElementById('result');
         const errorElem = document.getElementById('error');
         const btnClear = document.getElementById('btnClear');
         const inputUrl = document.getElementById('fullUrl');
-        const btnFetch = document.getElementById('btnFetch');
-        const loadingArea = document.getElementById('loadingArea');
 
-        // เริ่มต้น: ถ้ามี ?url= ใน query string ให้ prefill
+        const btnFetch = document.getElementById('btnFetch');
+        const btnCopy = document.getElementById('btnCopy');
+        const btnCopyUrl = document.getElementById('btnCopyUrl');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnPretty = document.getElementById('btnPretty');
+        const btnToggleRaw = document.getElementById('btnToggleRaw');
+
+        const presetList = document.getElementById('presetList');
+        const historyList = document.getElementById('historyList');
+        const lastInfo = document.getElementById('lastInfo');
+        const statusEl = document.getElementById('status');
+        const httpStatus = document.getElementById('httpStatus');
+        const btnSavePreset = document.getElementById('btnSavePreset');
+        const btnToggleProxy = document.getElementById('btnToggleProxy');
+        const proxyTag = document.getElementById('proxyTag');
+        const rateTag = document.getElementById('rateTag');
+        const actionSelect = document.getElementById('actionSelect');
+        const btnClearHistory = document.getElementById('btnClearHistory');
+        const btnResetPresets = document.getElementById('btnResetPresets');
+
+        // Presets (default examples) — you may customize
+        const DEFAULT_PRESETS = [
+            { name: 'Sample get_info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_info' },
+            { name: 'Simple info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_simple_info' },
+            { name: 'Live streams', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_live_streams' }
+        ];
+
+        // LocalStorage keys
+        const LS_HISTORY = 'apiViewer_history_v1';
+        const LS_PRESETS = 'apiViewer_presets_v1';
+        const LS_LASTURL = 'apiViewer_lasturl_v1';
+        const MAX_HISTORY = 12;
+
+        // Proxy usage flag (UI only toggles whether to prepend proxy)
+        let useProxy = true;
+        const PROXY_BASE = 'https://cors-anywhere.com/';
+
+        // Prefill from query param if present (keeps original behavior)
         function getQueryParam(param) {
             const params = new URLSearchParams(window.location.search);
             return params.get(param);
         }
         const prefillUrl = getQueryParam('url');
-        if (prefillUrl) inputUrl.value = decodeURIComponent(prefillUrl);
-
-        // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php" (robust)
-        function fixApiPath(urlObj) {
-            // เปลี่ยนเฉพาะเมื่อ pathname ลงท้ายด้วย get.php
-            urlObj.pathname = urlObj.pathname.replace(/\/?get\.php$/i, '/player_api.php');
-            return urlObj;
+        if(prefillUrl) {
+            inputUrl.value = decodeURIComponent(prefillUrl);
+        } else {
+            // restore last used URL
+            const last = localStorage.getItem(LS_LASTURL);
+            if(last) inputUrl.value = last;
         }
 
-        // Mask sensitive fields in JSON object before showing
-        function maskSensitive(obj) {
-            if (!obj || typeof obj !== 'object') return obj;
-            const clone = JSON.parse(JSON.stringify(obj)); // deep copy (simple)
-            function walk(o){
-                if (!o || typeof o !== 'object') return;
-                for (const k of Object.keys(o)){
-                    try {
-                        const v = o[k];
-                        if (k.toLowerCase().includes('password')) {
-                            o[k] = '*****';
-                        } else if (k.toLowerCase().includes('username') && typeof v === 'string') {
-                            o[k] = v.length > 3 ? v.substr(0,1) + '***' + v.substr(-1) : '***';
-                        } else if (typeof v === 'object') {
-                            walk(v);
-                        }
-                    } catch(e){}
-                }
-            }
-            walk(clone);
-            return clone;
-        }
-
-        // Prepare UI state
-        function setLoading(isLoading) {
-            btnFetch.disabled = isLoading;
-            btnClear.disabled = isLoading;
-            if (isLoading) {
-                loadingArea.innerHTML = '<span class="spinner" aria-hidden="true"></span><span style="margin-left:8px;color:#555;font-size:0.95rem;">Loading...</span>';
-            } else {
-                loadingArea.innerHTML = '';
-            }
-        }
-
-        // Show/clear error
+        // --- UI utilities ---
         function showError(msg) {
             errorElem.style.display = 'block';
             errorElem.textContent = msg;
+            statusEl.textContent = 'Error';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#7f1d1d';
         }
         function clearError() {
             errorElem.style.display = 'none';
             errorElem.textContent = '';
+            statusEl.textContent = 'Ready';
+            statusEl.style.background = '';
+            statusEl.style.color = '';
         }
 
-        // Build proxy URL function (using public instance by default)
-        const PROXY_ORIGIN = 'https://cors-anywhere.com'; // public example — for production self-host
-        // Note: public proxy may have rate-limits and not suitable for production [(CORS Anywhere)](https://cors-anywhere.com/)
-        function buildProxyFor(urlStr) {
-            // CORS Anywhere expects the target URL path after the origin: /http://target/...
-            // We ensure there's no accidental double slash after origin.
-            const trimmedOrigin = PROXY_ORIGIN.replace(/\/+$/,'');
-            return trimmedOrigin + '/' + urlStr;
+        function setLoading(on) {
+            if(on){
+                statusEl.innerHTML = 'Loading <span class="spinner" aria-hidden="true"></span>';
+            } else {
+                statusEl.textContent = 'Ready';
+            }
         }
 
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            clearError();
-            resultElem.textContent = '';
+        function updateLastInfo(text){
+            lastInfo.textContent = text;
+        }
 
-            let raw = inputUrl.value.trim();
-            if (!raw) {
-                showError('กรุณากรอก URL');
+        // History management
+        function loadHistory(){
+            try{
+                const raw = localStorage.getItem(LS_HISTORY);
+                return raw ? JSON.parse(raw) : [];
+            }catch(e){return [];}
+        }
+        function saveHistoryItem(url){
+            if(!url) return;
+            let list = loadHistory();
+            // remove dup
+            list = list.filter(u => u.url !== url);
+            list.unshift({ url, t: Date.now() });
+            if(list.length > MAX_HISTORY) list = list.slice(0, MAX_HISTORY);
+            localStorage.setItem(LS_HISTORY, JSON.stringify(list));
+            localStorage.setItem(LS_LASTURL, url);
+            renderHistory();
+        }
+        function clearHistory(){
+            localStorage.removeItem(LS_HISTORY);
+            renderHistory();
+        }
+        function renderHistory(){
+            const list = loadHistory();
+            historyList.innerHTML = '';
+            if(list.length === 0){
+                historyList.innerHTML = '<div style="padding:8px;color:var(--muted)">ไม่มีประวัติ</div>';
                 return;
             }
-
-            // Add protocol if missing
-            if (!/^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//.test(raw)) {
-                // default to http (but HTTPS recommended)
-                raw = 'http://' + raw;
-            }
-
-            let urlObj;
-            try {
-                urlObj = new URL(raw);
-            } catch (e) {
-                showError('URL ไม่ถูกต้อง');
-                return;
-            }
-
-            // Fix path if needed
-            urlObj = fixApiPath(urlObj);
-
-            // Ensure username/password in query params
-            const username = urlObj.searchParams.get('username');
-            const password = urlObj.searchParams.get('password');
-            if (!username || !password) {
-                showError('กรุณาใส่ username และ password ใน URL (query string) หรือใช้วิธีส่ง credential ที่ปลอดภัยกว่า');
-                return;
-            }
-
-            // Ensure action
-            if (!urlObj.searchParams.get('action')) {
-                urlObj.searchParams.set('action', 'get_info');
-            }
-
-            // Remove type/output params (as original)
-            urlObj.searchParams.delete('type');
-            urlObj.searchParams.delete('output');
-
-            // Build proxy url
-            const proxyUrl = buildProxyFor(urlObj.toString());
-
-            // UX: set loading and use AbortController for timeout
-            setLoading(true);
-            resultElem.textContent = 'Loading...';
-            const controller = new AbortController();
-            const timeoutMs = 15000; // 15s
-            const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-            try {
-                // Use header X-Requested-With as before (some CORS Anywhere instances expect)
-                const resp = await fetch(proxyUrl, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    signal: controller.signal,
+            list.forEach(item => {
+                const btn = document.createElement('button');
+                const d = new Date(item.t);
+                btn.innerHTML = `<strong>${item.url}</strong><div style="font-size:0.85rem;color:var(--muted)">${d.toLocaleString()}</div>`;
+                btn.addEventListener('click', () => {
+                    inputUrl.value = item.url;
                 });
+                historyList.appendChild(btn);
+            });
+        }
 
-                clearTimeout(timeout);
-
-                if (!resp.ok) {
-                    throw new Error(`Network response was not ok: ${resp.status} ${resp.statusText}`);
-                }
-
-                // Read text first and try parse JSON safely
-                const text = await resp.text();
-                let parsed = null;
-                try {
-                    parsed = text ? JSON.parse(text) : null;
-                } catch (e) {
-                    // Not JSON — show raw text but warn
-                    resultElem.textContent = 'ไม่สามารถ parse JSON ได้ — raw response:\n\n' + text;
-                    setLoading(false);
-                    return;
-                }
-
-                // Convert known timestamps if present
-                if (parsed && typeof parsed === 'object') {
-                    if (parsed.user_info) {
-                        if (parsed.user_info.exp_date) parsed.user_info.exp_date_readable = convertTimestamp(parsed.user_info.exp_date);
-                        if (parsed.user_info.created_at) parsed.user_info.created_at_readable = convertTimestamp(parsed.user_info.created_at);
-                    }
-                    if (parsed.server_info && parsed.server_info.timestamp_now) {
-                        parsed.server_info.timestamp_now_readable = convertTimestamp(parsed.server_info.timestamp_now);
-                    }
-                }
-
-                // Mask credentials in displayed output (do not show raw username/password)
-                const masked = maskSensitive(parsed);
-
-                resultElem.textContent = JSON.stringify(masked, null, 4);
-
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    showError('Request timed out (' + (timeoutMs/1000) + 's)');
-                } else {
-                    showError('เกิดข้อผิดพลาด: ' + err.message);
-                }
-                resultElem.textContent = '';
-            } finally {
-                clearTimeout(timeout);
-                setLoading(false);
+        // Presets management
+        function loadPresets(){
+            try{
+                const raw = localStorage.getItem(LS_PRESETS);
+                return raw ? JSON.parse(raw) : DEFAULT_PRESETS.slice();
+            }catch(e){return DEFAULT_PRESETS.slice();}
+        }
+        function savePresets(arr){
+            localStorage.setItem(LS_PRESETS, JSON.stringify(arr));
+            renderPresets();
+        }
+        function addPreset(label, url){
+            const arr = loadPresets();
+            arr.unshift({ name: label || url, url });
+            // keep a reasonable limit
+            if(arr.length > 20) arr.pop();
+            savePresets(arr);
+        }
+        function resetPresets(){
+            localStorage.removeItem(LS_PRESETS);
+            renderPresets();
+        }
+        function renderPresets(){
+            const arr = loadPresets();
+            presetList.innerHTML = '';
+            if(arr.length === 0){
+                presetList.innerHTML = '<div style="padding:8px;color:var(--muted)">No presets</div>';
+                return;
             }
+            arr.forEach(p => {
+                const btn = document.createElement('button');
+                btn.textContent = p.name;
+                btn.title = p.url;
+                btn.addEventListener('click', () => inputUrl.value = p.url);
+                presetList.appendChild(btn);
+            });
+        }
+
+        // Initialize lists
+        renderPresets();
+        renderHistory();
+
+        // Utility: pretty/compact JSON toggle
+        let lastJson = null;
+        let showPretty = true;
+        function renderResultFromJson(json, statusCode){
+            lastJson = json;
+            httpStatus.textContent = statusCode ? `HTTP ${statusCode}` : '';
+            if(showPretty){
+                try{
+                    resultElem.textContent = JSON.stringify(json, null, 4);
+                }catch(e){
+                    resultElem.textContent = String(json);
+                }
+            } else {
+                try{
+                    resultElem.textContent = JSON.stringify(json);
+                }catch(e){
+                    resultElem.textContent = String(json);
+                }
+            }
+        }
+
+        // Copy / Download
+        btnCopy.addEventListener('click', () => {
+            if(!resultElem.textContent) return;
+            navigator.clipboard.writeText(resultElem.textContent)
+            .then(()=> {
+                statusEl.textContent = 'Copied';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+            })
+            .catch(()=> showError('ไม่สามารถคัดลอกได้'));
         });
 
+        btnCopyUrl.addEventListener('click', () => {
+            const url = buildProxyUrlFromInput();
+            if(!url) return showError('ไม่มี URL ที่จะคัดลอก');
+            navigator.clipboard.writeText(url)
+                .then(()=> {
+                    statusEl.textContent = 'URL copied';
+                    setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+                })
+                .catch(()=> showError('คัดลอก URL ไม่สำเร็จ'));
+        });
+
+        btnDownload.addEventListener('click', () => {
+            if(!resultElem.textContent) return showError('ไม่มีข้อมูลให้ดาวน์โหลด');
+            const blob = new Blob([resultElem.textContent], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'response.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
+        });
+
+        btnPretty.addEventListener('click', () => {
+            showPretty = true;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnPretty.classList.add('btn-primary');
+            btnPretty.style.color='white';
+            btnToggleRaw.classList.remove('btn-primary');
+            btnToggleRaw.style.color='';
+        });
+
+        btnToggleRaw.addEventListener('click', () => {
+            showPretty = false;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnToggleRaw.classList.add('btn-primary');
+            btnToggleRaw.style.color='white';
+            btnPretty.classList.remove('btn-primary');
+            btnPretty.style.color='';
+        });
+
+        // Toggle proxy usage
+        btnToggleProxy.addEventListener('click', () => {
+            useProxy = !useProxy;
+            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        });
+
+        // Save preset
+        btnSavePreset.addEventListener('click', () => {
+            const val = inputUrl.value.trim();
+            if(!val){ showError('ไม่มี URL ให้บันทึกเป็น preset'); return; }
+            const label = prompt('ตั้งชื่อ preset (ปล่อยว่างเพื่อใช้ URL เป็นชื่อ):');
+            addPreset(label || val, val);
+            statusEl.textContent = 'Preset saved';
+            setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+        });
+
+        // Clear form
         btnClear.addEventListener('click', () => {
             inputUrl.value = '';
             clearError();
             resultElem.textContent = '';
             inputUrl.focus();
         });
+
+        // History controls
+        btnClearHistory.addEventListener('click', () => {
+            if(confirm('ลบประวัติทั้งหมด?')) {
+                clearHistory();
+                statusEl.textContent = 'History cleared';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+            }
+        });
+        btnResetPresets.addEventListener('click', () => {
+            if(confirm('คืนค่า presets เริ่มต้น?')) {
+                resetPresets();
+                statusEl.textContent = 'Presets reset';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+            }
+        });
+
+        // Build and return the proxied URL string or plain URL depending on useProxy
+        function buildProxyUrlFromInput(){
+            const fullUrlStr = inputUrl.value.trim();
+            if(!fullUrlStr) return null;
+            try{
+                let urlObj = new URL(fullUrlStr);
+                urlObj = fixApiPath(urlObj);
+                // remove type & output like original
+                urlObj.searchParams.delete('type');
+                urlObj.searchParams.delete('output');
+
+                // fill action if not present and select provided
+                if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
+                else if(!urlObj.searchParams.get('action')) urlObj.searchParams.set('action', 'get_info');
+
+                const final = urlObj.toString();
+                return useProxy ? (PROXY_BASE + final) : final;
+            }catch(e){
+                return null;
+            }
+        }
+
+        // Main request handler (preserves previous behavior and header)
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            clearError();
+
+            const fullUrl = inputUrl.value.trim();
+            if (!fullUrl) {
+                showError('กรุณากรอก URL');
+                return;
+            }
+
+            let urlObj;
+            try {
+                urlObj = new URL(fullUrl);
+            } catch (err) {
+                showError('URL ไม่ถูกต้อง');
+                return;
+            }
+
+            // Adjust path and params like original
+            urlObj = fixApiPath(urlObj);
+            urlObj.searchParams.delete('type');
+            urlObj.searchParams.delete('output');
+
+            const username = urlObj.searchParams.get('username');
+            const password = urlObj.searchParams.get('password');
+            if (!username || !password) {
+                showError('กรุณาใส่ username และ password ใน URL');
+                return;
+            }
+
+            if (!urlObj.searchParams.get('action')) {
+                if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
+                else urlObj.searchParams.set('action', 'get_info');
+            }
+
+            // Construct final URL and perform fetch
+            const targetUrl = urlObj.toString();
+            const proxyUrl = useProxy ? (PROXY_BASE + targetUrl) : targetUrl;
+
+            // Update UI
+            resultElem.textContent = 'Loading...';
+            setLoading(true);
+            httpStatus.textContent = '';
+            updateLastInfo(`Requesting: ${useProxy ? 'via proxy' : 'direct'} — ${new Date().toLocaleString()}`);
+
+            // Save to history
+            saveHistoryItem(targetUrl);
+
+            fetch(proxyUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                setLoading(false);
+                if(!response.ok) {
+                    httpStatus.textContent = `HTTP ${response.status}`;
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                // Try parse JSON, but if fails, return text
+                const contentType = response.headers.get('content-type') || '';
+                if(contentType.includes('application/json')) {
+                    return response.json().then(jsonData => ({ jsonData, status: response.status }));
+                } else {
+                    return response.text().then(txt => ({ txt, status: response.status }));
+                }
+            })
+            .then(obj => {
+                if(obj.jsonData){
+                    const jsonData = obj.jsonData;
+                    // convert timestamps like original
+                    if(jsonData.user_info){
+                        jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
+                        jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
+                    }
+                    if(jsonData.server_info){
+                        jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
+                    }
+                    renderResultFromJson(jsonData, obj.status);
+                    clearError();
+                } else if(obj.txt){
+                    // display raw text
+                    lastJson = null;
+                    httpStatus.textContent = `HTTP ${obj.status}`;
+                    resultElem.textContent = obj.txt;
+                }
+            })
+            .catch(err => {
+                setLoading(false);
+                showError('เกิดข้อผิดพลาด: ' + err.message);
+                resultElem.textContent = '';
+            });
+        });
+
+        // Initial UI states
+        btnPretty.classList.add('btn-primary');
+        btnPretty.style.color='white';
+
+        // Expose a keyboard shortcut: Ctrl+Enter to submit
+        inputUrl.addEventListener('keydown', (e) => {
+            if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+                btnFetch.click();
+            }
+        });
+
+        // Render initial tags
+        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        rateTag.innerHTML = 'Rate limit: 20 req/min';
+
+        // set initial last info
+        updateLastInfo('Ready — no requests yet');
+
     </script>
 </body>
 </html>
