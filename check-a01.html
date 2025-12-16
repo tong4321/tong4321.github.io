@@ -1,213 +1,425 @@
 <!doctype html>
 <html lang="th">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GET URL Examples — ตัวอย่างการเรียกผ่าน URL (GET)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.0.96/css/materialdesignicons.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-<style>
-  :root{--bg:#f5f7fb;--card:#fff;--accent:#5b21b6;--muted:#6b7280}
-  *{box-sizing:border-box}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,#f8fafc, #eef2ff);padding:28px;display:flex;justify-content:center}
-  .wrap{width:980px;max-width:96%;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
-  .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 8px 30px rgba(31,41,55,0.08)}
-  h1{margin:0;font-size:1.2rem;color:#0f172a;display:flex;gap:10px;align-items:center}
-  p.lead{margin:8px 0 16px;color:var(--muted);font-size:0.95rem}
-  .examples{display:flex;flex-direction:column;gap:8px}
-  .example{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:#fbfbff;border:1px solid #eef2ff}
-  .ex-url{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;font-size:0.88rem;color:#0b1220;overflow:auto}
-  .row{display:flex;gap:8px;align-items:center}
-  button.btn{border:0;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;display:inline-flex;gap:8px;align-items:center}
-  button.ghost{background:transparent;border:1px solid #e6e9ff;color:var(--accent)}
-  .small{font-size:0.85rem;color:var(--muted)}
-  pre.snip{background:#0f172a;color:#e6f0ff;padding:12px;border-radius:8px;overflow:auto;margin:10px 0;font-size:0.85rem}
-  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-  .chip{background:#f1efff;color:#2b0766;padding:6px 10px;border-radius:999px;font-size:0.8rem}
-  .right-col{display:flex;flex-direction:column;gap:12px}
-  #chart{height:170px;width:100%}
-  .result{background:#0b1220;color:#e6f0ff;padding:14px;border-radius:10px;font-family:ui-monospace,monospace;font-size:0.85rem;min-height:110px;overflow:auto}
-  .svg-deco{width:48px;height:48px;display:inline-block}
-  .hint{font-size:0.9rem;color:var(--muted);margin-top:8px}
-  @media (max-width:920px){.wrap{grid-template-columns:1fr;}.right-col{order:2}}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IPTV M3U Reader — StreamCraft</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+
+  <!-- ECharts, Mermaid, hls.js -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+
+  <style>
+    :root{--bg:#071226;--card:#0b1630;--muted:#9aa4b2;--accent1:#60a5fa;--accent2:#2dd4bf}
+    *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#031022);color:#e6eef6}
+    .wrap{display:grid;grid-template-columns:280px 1fr;gap:20px;padding:22px;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,var(--card),#071224);border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .badge{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;color:#012;font-weight:800}
+    .logo h1{margin:0;font-size:16px}
+    nav{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+    nav a{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600}
+    nav a:hover{background:rgba(255,255,255,0.02);color:#fff}
+    .hint{margin-top:12px;color:var(--muted);font-size:13px}
+
+    main{display:flex;flex-direction:column;gap:14px}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.4)}
+    .controls{display:flex;gap:8px;align-items:center}
+    input[type=url], input[type=text]{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:10px;color:inherit;width:100%}
+    .btn{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#012;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .two{display:grid;grid-template-columns:1fr 420px;gap:14px}
+    .channels{max-height:56vh;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
+    .ch{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:rgba(255,255,255,0.01)}
+    .thumb{width:64px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#1f2937,#111827);font-weight:700}
+    .meta h4{margin:0;font-size:14px}
+    .meta p{margin:4px 0 0 0;font-size:12px;color:var(--muted)}
+    .play-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+    #videoPlayer{width:100%;height:240px;background:#000;border-radius:8px}
+    .charts{display:flex;gap:12px;margin-top:8px}
+    #chartGroups,#chartProto{height:160px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
+    .mermaid-card{padding:8px}
+    .tools{display:flex;gap:8px;margin-top:8px}
+
+    footer{color:var(--muted);font-size:13px;padding:8px;text-align:center}
+
+    @media (max-width:980px){
+      .wrap{grid-template-columns:1fr;padding:12px}
+      .two{grid-template-columns:1fr}
+      #videoPlayer{height:200px}
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <section class="card">
-    <h1>🔗 ตัวอย่างการเรียกผ่าน URL (GET)</h1>
-    <p class="lead">ส่ง URL เป็น query parameter ชื่อ <strong>url</strong> หรือ <strong>u</strong> เพื่อให้หน้าเว็บอ่านค่าอัตโนมัติ (ต้อง encode ค่า URL ที่มี &amp; และ ?)</p>
-
-    <div class="examples">
-      <div class="example">
-        <div style="flex:1">
-          <div class="row">
-            <div style="flex:1">
-              <div class="small">ตัวอย่าง API แบบพื้นฐาน</div>
-              <div class="ex-url">http://api.example.com/player_api.php?username=user1&amp;password=pass1</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <button class="btn" onclick="openAsParam('http://api.example.com/player_api.php?username=user1&password=pass1')">
-                <i class="mdi mdi-link-variant"></i> เปิดด้วย ?url=
-              </button>
-              <button class="btn ghost" onclick="copyText('http://api.example.com/player_api.php?username=user1&password=pass1')">📋 คัดลอก</button>
-            </div>
-          </div>
-          <div class="hint">จะต้อง encode เมื่อใส่ใน query string เช่น encodeURIComponent(url)</div>
-        </div>
-      </div>
-
-      <div class="example">
-        <div style="flex:1">
-          <div class="row">
-            <div style="flex:1">
-              <div class="small">ตัวอย่างที่มีพารามิเตอร์อื่น ๆ (type/output)</div>
-              <div class="ex-url">http://other.host/get.php?username=abc&amp;password=123&amp;type=get&amp;output=json</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <button class="btn" onclick="openAsParam('http://other.host/get.php?username=abc&password=123&type=get&output=json')">
-                <i class="mdi mdi-open-in-new"></i> เปิด
-              </button>
-              <button class="btn ghost" onclick="copyText('http://other.host/get.php?username=abc&password=123&type=get&output=json')">📋 คัดลอก</button>
-            </div>
-          </div>
-          <div class="hint">ระบบจะเปลี่ยน get.php → player_api.php และตัด type/output ออก (ถ้าต้องการ)</div>
-        </div>
-      </div>
-
-      <div class="example">
-        <div style="flex:1">
-          <div class="row">
-            <div style="flex:1">
-              <div class="small">ตัวอย่างการใส่เป็นพารามิเตอร์สั้น (u)</div>
-              <div class="ex-url">https://service.io/player_api.php?username=demo&amp;password=demo123</div>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <button class="btn" onclick="openAsParam('https://service.io/player_api.php?username=demo&password=demo123','u')">🔁 เปิดด้วย u=</button>
-              <button class="btn ghost" onclick="copyText('https://service.io/player_api.php?username=demo&password=demo123')">📋 คัดลอก</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div style="margin-top:14px">
-      <label class="small">ใส่ URL ของคุณเพื่อสร้างลิงก์ ?url= (หน้าเดียวใช้งานได้ทันที)</label>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input id="build" type="text" placeholder="Paste API URL เช่น http://host/player_api.php?username=...&password=..." style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e9ff;font-family:inherit" />
-        <button class="btn" onclick="buildLink()">🔗 สร้าง</button>
-        <button class="btn ghost" onclick="doEncode()">🧾 Encode</button>
-      </div>
-      <pre class="snip" id="builtOutput" aria-hidden="false">ตัวอย่างผลลัพธ์จะปรากฏที่นี่</pre>
-      <div class="meta">
-        <div class="chip">แนะนำ: ใช้ encodeURIComponent() เมื่อ URL มี &amp; หรือ ?</div>
-        <div class="chip">ความปลอดภัย ⚠ ส่ง username/password ใน query string อาจไม่ปลอดภัย</div>
-      </div>
-    </div>
-
-    <div style="margin-top:16px">
-      <div class="small">ตัวอย่างสั้น (copy-ready)</div>
-      <pre class="snip">// ตัวอย่าง JavaScript (client) ใช้ window.location.search
-const params = new URLSearchParams(window.location.search);
-const api = params.get('url') || params.get('u');
-// ใช้ decodeURIComponent() ถ้าจำเป็น</pre>
-    </div>
-  </section>
-
-  <aside class="right-col">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
+  <div class="wrap" role="application" aria-label="M3U IPTV Utility">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="badge">IPTV</div>
         <div>
-          <div class="small">ภาพรวมตัวอย่าง</div>
-          <strong style="display:block;margin-top:6px">การเรียกผ่าน GET — ?url= / ?u=</strong>
+          <h1>StreamCraft</h1>
+          <div style="font-size:12px;color:var(--muted)">M3U Parser • Player • Analytics</div>
         </div>
-        <svg class="svg-deco" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <rect x="2" y="3" width="20" height="14" rx="2" fill="#eef2ff"/>
-          <path d="M7 14v3h10v-3" stroke="#5b21b6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="8.5" cy="6.5" r="0.9" fill="#5b21b6"/>
-        </svg>
       </div>
 
-      <div id="chart"></div>
-      <div class="small" style="margin-top:6px">ตัวอย่างนี้แสดงสัดส่วนประเภทลิงก์ที่มักพบบ่อย</div>
-    </div>
+      <nav aria-label="Main">
+        <a href="#"><span class="mdi mdi-play-circle-outline"></span> โหลดแผง (M3U)</a>
+        <a href="#"><span class="mdi mdi-file-tree"></span> รายการช่อง</a>
+        <a href="#"><span class="mdi mdi-chart-donut"></span> สถิติ</a>
+        <a href="#"><span class="mdi mdi-cog-outline"></span> การตั้งค่า</a>
+      </nav>
 
-    <div class="card">
-      <div class="small">การไหลของกระบวนการ</div>
-      <div class="mermaid" id="flow">
-        graph TB
-        A[ผู้เรียกหน้าเว็บ] --> B{มี param url / u ?}
-        B -- ใช่ --> C[decodeURIComponent → แสดงใน input]
-        C --> D{ต้อง fetch ทันทีไหม?}
-        D -- auto=true → E[เรียก fetch ผ่าน proxy (ถ้าจำเป็น)]
-        D -- no → F[ผู้ใช้กดปุ่ม Get Info]
-        B -- ไม่ --> G[ผู้ใช้กรอก URL ด้วยตนเอง]
+      <div class="hint">Tip: ถ้า fetch ลิ้งค์ติด CORS ให้เปิดใช้งาน CORS proxy หรืออัปโหลดไฟล์จากเครื่องของคุณ</div>
+    </aside>
+
+    <main>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <strong style="font-size:16px">นำเข้า M3U / m3u8 🔗</strong>
+            <div style="font-size:13px;color:var(--muted)">ป้อน URL หรืออัปโหลดไฟล์ .m3u/.m3u8</div>
+          </div>
+          <div style="font-size:13px;color:var(--muted)">รองรับ HLS · RTMP · HTTP</div>
+        </div>
+
+        <div style="margin-top:12px" class="controls">
+          <input id="m3uUrl" type="url" placeholder="วางลิงก์ M3U ที่นี่ (เช่น https://...)">
+          <button class="btn" id="fetchBtn">Fetch</button>
+          <button class="btn ghost" id="useProxyBtn" title="ใช้ตัวกลาง CORS">ใช้ CORS proxy</button>
+          <input id="fileInput" type="file" accept=".m3u,.m3u8,text/plain" style="display:none">
+          <button class="btn ghost" id="uploadBtn"><span class="mdi mdi-upload"></span> อัปโหลดไฟล์</button>
+        </div>
+
+        <div class="tools">
+          <button class="btn" id="exportJsonBtn">ดาวน์โหลด JSON</button>
+          <button class="btn ghost" id="copyBtn">คัดลอก JSON</button>
+          <button class="btn ghost" id="cleanM3UBtn">ดาวน์โหลด M3U (Clean)</button>
+        </div>
+
+        <div id="status" style="margin-top:10px;color:var(--muted);font-size:13px">สถานะ: พร้อม</div>
       </div>
-    </div>
 
-    <div class="card">
-      <div class="small">ผลลัพธ์ (ตัวอย่าง)</div>
-      <div id="result" class="result">ไม่มีการเรียก API ภายนอก — กดตัวอย่างเพื่อเปิดหน้าพร้อมพารามิเตอร์</div>
-    </div>
-  </aside>
-</div>
+      <div class="two">
+        <section class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>รายการช่อง</strong>
+            <div style="font-size:13px;color:var(--muted)"><span id="count">0</span> ช่อง</div>
+          </div>
 
-<script>
-mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{edgeLabelBackground:'#fff'}});
-const chart = echarts.init(document.getElementById('chart'));
-chart.setOption({
-  tooltip:{},legend:{show:false},
-  series:[{type:'pie',radius:['40%','70%'],avoidLabelOverlap:false,
-    data:[
-      {value:55,name:'player_api.php'},
-      {value:25,name:'get.php (converted)'},
-      {value:20,name:'other'}
-    ],
-    label:{show:true,formatter:'{b}\\n{d}%'}
-  ]}
-});
+          <div class="channels" id="channelsList" aria-live="polite" style="margin-top:10px">
+            <!-- channels appended here -->
+          </div>
+        </section>
 
-function openAsParam(url, key='url') {
-  const encoded = encodeURIComponent(url);
-  const target = `${location.origin}${location.pathname}?${key}=${encoded}`;
-  // open in new tab so user can see addressbar example
-  window.open(target, '_blank');
-}
-function copyText(txt){
-  navigator.clipboard?.writeText(txt).then(()=>alert('คัดลอกแล้ว ✅'),()=>prompt('Copy manually:',txt));
-}
-function buildLink(){
-  const raw = document.getElementById('build').value.trim();
-  if(!raw){alert('กรุณาใส่ URL');return;}
-  const enc = encodeURIComponent(raw);
-  const out = `${location.origin}${location.pathname}?url=${enc}`;
-  document.getElementById('builtOutput').textContent = out;
-}
-function doEncode(){
-  const raw = document.getElementById('build').value.trim();
-  if(!raw){alert('กรุณาใส่ URL');return;}
-  document.getElementById('builtOutput').textContent = encodeURIComponent(raw);
-}
+        <aside class="card" style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <strong>Player Preview</strong>
+            <div style="font-size:13px;color:var(--muted)">เล่น M3U / m3u8 (HLS) โดยใช้ hls.js if required</div>
+          </div>
+          <div id="videoPlayerWrap" style="position:relative">
+            <video id="videoPlayer" controls playsinline></video>
+          </div>
 
-// ถ้ามี ?url หรือ ?u ให้แสดงรายละเอียดบนหน้า (ไม่ทำ fetch โดยอัตโนมัติในตัวอย่างนี้)
-(function showParam(){
-  const p = new URLSearchParams(location.search);
-  const raw = p.get('url') || p.get('u');
-  if(!raw) return;
-  let decoded = raw;
-  try { decoded = decodeURIComponent(raw); } catch(e){}
-  const msg = [
-    '📥 พบพารามิเตอร์ใน URL:',
-    '',
-    `raw: ${raw}`,
-    `decoded: ${decoded}`,
-    '',
-    'คำแนะนำ: หาก URL นี้มี & หรือ ? ควร encode ด้วย encodeURIComponent() ก่อนใส่เป็นค่าพารามิเตอร์',
-    'ตัวอย่างการเปิด: window.location = "?url="+encodeURIComponent(apiUrl)'
-  ].join('\\n');
-  document.getElementById('result').textContent = msg;
-})();
-</script>
+          <div class="charts">
+            <div id="chartGroups" style="flex:1"></div>
+            <div id="chartProto" style="width:180px"></div>
+          </div>
+
+          <div class="mermaid-card card" style="padding:10px;">
+            <strong>Pipeline</strong>
+            <div class="mermaid" id="mermaidDiagram" style="margin-top:8px">
+graph LR
+  User[ผู้ใช้] -->|โหลด M3U| Parser(Parses M3U)
+  Parser -->|รายการช่อง| UI[UI Listing]
+  UI -->|เล่น| Player[HLS/Native Player]
+  Player --> Metrics[(ECharts Analytics)]
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <footer>© 2025 StreamCraft • พัฒนาโดยผู้เชี่ยวชาญ IPTV & Full‑Stack</footer>
+    </main>
+  </div>
+
+  <script>
+    // Initialize mermaid (ES module loaded separately)
+    (async()=> {
+      try {
+        const mermaid = (await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs')).default;
+        mermaid.initialize({ startOnLoad: true, theme: 'dark', flowchart:{curve:'basis'} });
+      } catch(e){ console.warn('mermaid load error', e); }
+    })();
+  </script>
+
+  <script>
+    // Utils
+    const $ = sel => document.querySelector(sel);
+    const status = $('#status');
+    const listEl = $('#channelsList');
+    const countEl = $('#count');
+    let channels = [];
+    let useProxy = false;
+
+    function setStatus(t, err=false){ status.textContent = 'สถานะ: ' + t; status.style.color = err ? '#fb7185' : 'var(--muted)'; }
+
+    // parse EXTINF lines into metadata
+    function parseEXTINF(line){
+      // example: #EXTINF:-1 tvg-id="id" tvg-name="name" tvg-logo="..." group-title="Group",Channel Title
+      const info = {title:'',tvg_id:'',tvg_name:'',tvg_logo:'',group:''};
+      const attrPart = line.split('#EXTINF:')[1] || '';
+      const parts = attrPart.split(',');
+      const attrs = parts.slice(0,-1).join(',') || parts[0] || '';
+      const title = parts.slice(-1).join(',').trim();
+      info.title = title || '';
+      // attributes regex
+      const re = /([\w-]+)=["']([^"']*)["']/g;
+      let m;
+      while((m = re.exec(attrs))){
+        const k = m[1];
+        const v = m[2];
+        if(k.toLowerCase().includes('tvg-id')) info.tvg_id = v;
+        else if(k.toLowerCase().includes('tvg-name')) info.tvg_name = v;
+        else if(k.toLowerCase().includes('tvg-logo')) info.tvg_logo = v;
+        else if(k.toLowerCase().includes('group-title')) info.group = v;
+        else info[k] = v;
+      }
+      return info;
+    }
+
+    function parseM3U(text){
+      const lines = text.split(/\r?\n/);
+      const items=[];
+      let lastInfo = null;
+      for(let raw of lines){
+        const line = raw.trim();
+        if(!line) continue;
+        if(line.startsWith('#EXTINF')){
+          lastInfo = parseEXTINF(line);
+        } else if(line.startsWith('#')) {
+          // ignore other comments
+        } else {
+          // URL line
+          const url = line;
+          const meta = lastInfo ? {...lastInfo} : {title:''};
+          meta.url = url;
+          if(!meta.title) {
+            // try to derive from url or tvg-name
+            meta.title = meta['tvg-name'] || meta.tvg_id || url.split('/').pop() || url;
+          }
+          items.push(meta);
+          lastInfo = null;
+        }
+      }
+      return items;
+    }
+
+    // UI functions
+    function renderChannels(arr){
+      channels = arr;
+      listEl.innerHTML = '';
+      arr.forEach((ch, idx) => {
+        const div = document.createElement('div');
+        div.className = 'ch';
+        const logo = ch.tvg_logo || '';
+        const emoji = chooseEmojiFromGroup(ch.group || ch.title);
+        div.innerHTML = `
+          <div class="thumb">${ logo ? `<img src="${escapeHtml(logo)}" alt="" style="max-width:100%;max-height:100%;border-radius:6px">` : emoji }</div>
+          <div class="meta">
+            <h4 title="${escapeHtml(ch.title)}">${escapeHtml(ch.title)}</h4>
+            <p>${escapeHtml(ch.group || 'No group')} • <span style="opacity:0.8">ID:${escapeHtml(ch.tvg_id||'-')}</span></p>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px">${escapeHtml(shorten(ch.url, 70))}</div>
+          </div>
+          <div class="play-actions">
+            <button class="btn" data-idx="${idx}" onclick="playChannel(${idx})"><span class="mdi mdi-play"></span> เล่น</button>
+            <button class="btn ghost" onclick="openStream(${idx})" style="background:transparent;border:1px solid rgba(255,255,255,0.03)"><span class="mdi mdi-open-in-new"></span></button>
+          </div>
+        `;
+        listEl.appendChild(div);
+      });
+      countEl.textContent = arr.length;
+      updateCharts();
+    }
+
+    // small helpers
+    function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function shorten(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s }
+    function chooseEmojiFromGroup(g){
+      if(!g) return '📺';
+      g = g.toLowerCase();
+      if(g.includes('news')) return '📰';
+      if(g.includes('sport')) return '⚽';
+      if(g.includes('movie')||g.includes('film')) return '🎬';
+      if(g.includes('music')) return '🎵';
+      if(g.includes('kids')) return '🧸';
+      if(g.includes('doc')) return '📚';
+      return '📺';
+    }
+
+    // play logic with hls.js fallback
+    let hlsInstance = null;
+    window.playChannel = function(idx){
+      const ch = channels[idx];
+      if(!ch) return;
+      const video = document.getElementById('videoPlayer');
+      const src = ch.url;
+      // stop previous
+      if(hlsInstance){ hlsInstance.destroy(); hlsInstance = null; }
+      if(video.canPlayType('application/vnd.apple.mpegurl') || src.toLowerCase().includes('.m3u8') && /Safari/.test(navigator.userAgent)){
+        video.src = src;
+        video.play().catch(()=>{});
+      } else if(Hls.isSupported() && src.toLowerCase().includes('.m3u8')){
+        hlsInstance = new Hls();
+        hlsInstance.loadSource(src);
+        hlsInstance.attachMedia(video);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() { video.play().catch(()=>{}); });
+      } else {
+        // non-HLS stream (http/rtmp) just open in new tab
+        window.open(src, '_blank');
+      }
+      setStatus('กำลังเล่น: ' + ch.title);
+    };
+
+    window.openStream = function(idx){
+      const ch = channels[idx];
+      if(!ch) return;
+      window.open(ch.url,'_blank');
+    };
+
+    // fetch M3U from URL or file
+    $('#fetchBtn').addEventListener('click', async () => {
+      const url = $('#m3uUrl').value.trim();
+      if(!url){ setStatus('โปรดใส่ URL',true); return; }
+      setStatus('กำลังดาวน์โหลด...');
+      try {
+        const target = useProxy ? proxyUrl(url) : url;
+        const res = await fetch(target);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        const txt = await res.text();
+        const parsed = parseM3U(txt);
+        if(parsed.length===0) setStatus('ไม่พบรายการช่องในไฟล์', true);
+        else { setStatus('โหลดสำเร็จ ('+parsed.length+' ช่อง)'); renderChannels(parsed); }
+      } catch(err){
+        setStatus('ไม่สามารถโหลดได้: '+err.message, true);
+      }
+    });
+
+    // proxy utility
+    function proxyUrl(url){
+      // user-visible example proxies; here we use allorigins as default (public)
+      // Note: for heavy/production use, provide your own proxy.
+      return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    }
+
+    // toggle proxy
+    $('#useProxyBtn').addEventListener('click', ()=>{
+      useProxy = !useProxy;
+      $('#useProxyBtn').textContent = useProxy ? 'Proxy: ON' : 'ใช้ CORS proxy';
+      $('#useProxyBtn').style.background = useProxy ? 'linear-gradient(90deg,var(--accent2),var(--accent1))' : '';
+    });
+
+    // upload file
+    $('#uploadBtn').addEventListener('click', ()=> $('#fileInput').click());
+    $('#fileInput').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if(!f) return;
+      setStatus('อ่านไฟล์ local...');
+      const txt = await f.text();
+      const parsed = parseM3U(txt);
+      if(parsed.length===0) setStatus('ไฟล์ไม่มีรายการช่อง', true);
+      else { setStatus('โหลดสำเร็จ ('+parsed.length+' ช่อง)'); renderChannels(parsed); }
+    });
+
+    // export JSON / copy / clean M3U
+    $('#exportJsonBtn').addEventListener('click', ()=>{
+      if(!channels.length){ setStatus('ไม่มีข้อมูลให้ดาวน์โหลด',true); return; }
+      const blob = new Blob([JSON.stringify(channels, null, 2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'channels.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('#copyBtn').addEventListener('click', async ()=>{
+      if(!channels.length){ setStatus('ไม่มีข้อมูลให้คัดลอก',true); return; }
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(channels, null, 2));
+        setStatus('คัดลอก JSON ไปยังคลิปบอร์ดแล้ว');
+      } catch(e){ setStatus('ไม่สามารถคัดลอก: '+e.message, true); }
+    });
+
+    $('#cleanM3UBtn').addEventListener('click', ()=>{
+      if(!channels.length){ setStatus('ไม่มีข้อมูลให้ดาวน์โหลด',true); return; }
+      let out = '#EXTM3U\n';
+      channels.forEach(ch=>{
+        // build simple EXTINF
+        const attrs = [];
+        if(ch.tvg_id) attrs.push(`tvg-id="${ch.tvg_id}"`);
+        if(ch.tvg_name) attrs.push(`tvg-name="${ch.tvg_name}"`);
+        if(ch.tvg_logo) attrs.push(`tvg-logo="${ch.tvg_logo}"`);
+        if(ch.group) attrs.push(`group-title="${ch.group}"`);
+        out += `#EXTINF:-1 ${attrs.join(' ')} ,${ch.title}\n${ch.url}\n`;
+      });
+      const blob = new Blob([out], {type:'application/x-mpegURL'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'cleaned.m3u';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      setStatus('ดาวน์โหลด M3U สำเร็จ');
+    });
+
+    // basic charts via ECharts
+    const chartGroups = echarts.init(document.getElementById('chartGroups'));
+    const chartProto = echarts.init(document.getElementById('chartProto'));
+
+    function updateCharts(){
+      // groups
+      const groups = {};
+      const proto = {};
+      channels.forEach(c=>{
+        const g = c.group || 'Ungrouped';
+        groups[g] = (groups[g]||0)+1;
+        const p = (c.url||'').split(':')[0] || 'other';
+        proto[p] = (proto[p]||0)+1;
+      });
+      const gdata = Object.keys(groups).map(k=>({name:k,value:groups[k]}));
+      const pdata = Object.keys(proto).map(k=>({name:k,value:proto[k]}));
+
+      chartGroups.setOption({
+        title:{text:'กลุ่มช่อง',left:8,textStyle:{color:'#e6eef6',fontSize:13}},
+        tooltip:{},
+        series:[{
+          type:'pie',radius:['40%','70%'],data:gdata, label:{color:'#cfeafe',formatter:'{b}\n{d}%'}
+        }]
+      });
+
+      chartProto.setOption({
+        title:{text:'protocol',left:'center',textStyle:{color:'#e6eef6',fontSize:12}},
+        tooltip:{},
+        xAxis:{type:'category',data:pdata.map(d=>d.name),axisLine:{show:false}},
+        yAxis:{type:'value',axisLine:{show:false},splitLine:{show:false}},
+        series:[{type:'bar',data:pdata.map(d=>d.value),itemStyle:{color:'#2dd4bf'}}]
+      });
+    }
+
+    // small demo: parse sample if none loaded
+    const sample = `#EXTM3U
+#EXTINF:-1 tvg-id="101" tvg-name="MovieOne HD" tvg-logo="" group-title="Entertainment",MovieOne HD
+http://example.com/stream/movieone.m3u8
+#EXTINF:-1 tvg-id="204" tvg-name="NewsLive" tvg-logo="" group-title="News",NewsLive
+http://example.com/stream/newslive.m3u8
+#EXTINF:-1 tvg-id="305" tvg-name="Sports Arena" tvg-logo="" group-title="Sports",Sports Arena
+http://example.com/stream/sports.m3u8
+`;
+    renderChannels(parseM3U(sample));
+    setStatus('พร้อม — ตัวอย่างถูกโหลด (ทดสอบ)');
+  </script>
 </body>
 </html>
