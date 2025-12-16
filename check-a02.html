@@ -3,65 +3,73 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>API Viewer — Pro UI</title>
+<title>API Viewer — UX Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css" rel="stylesheet">
 <script src="https://unpkg.com/mermaid@10.4.0/dist/mermaid.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
 <style>
-:root{--bg:#f6f8ff;--card:#fff;--accent:#4f46e5;--muted:#6b7280;--danger:#ef4444;--glass:rgba(79,70,229,0.06)}
+:root{
+  --bg:#f6f8ff; --card:#fff; --accent:#4f46e5; --muted:#6b7280; --success:#16a34a; --danger:#ef4444;
+  --glass: rgba(79,70,229,0.06);
+  --maxw:1200px;
+}
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#fbfdff);min-height:100vh;display:flex;justify-content:center;padding:28px}
-.container{width:100%;max-width:1200px;background:var(--card);border-radius:14px;padding:20px;box-shadow:0 16px 40px rgba(15,23,42,0.08);display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start}
-.header{grid-column:1/-1;display:flex;align-items:center;gap:14px}
-.logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px;box-shadow:0 8px 24px rgba(79,70,229,0.18)}
-.title{margin:0}
-.title h1{font-size:1.25rem;margin:0;color:#0f172a}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,var(--bg),#fbfdff);-webkit-font-smoothing:antialiased}
+.container{max-width:var(--maxw);margin:28px auto;padding:20px;border-radius:14px;background:var(--card);box-shadow:0 18px 46px rgba(12,16,40,0.08);display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start}
+.header{grid-column:1/-1;display:flex;gap:14px;align-items:center;margin-bottom:2px}
+.logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;box-shadow:0 10px 28px rgba(79,70,229,0.16)}
+.title h1{margin:0;font-size:1.15rem;color:#071033}
 .title p{margin:2px 0 0;color:var(--muted);font-size:0.92rem}
-.card{background:linear-gradient(180deg,#fff,#fbfdff);padding:14px;border-radius:12px;border:1px solid rgba(15,23,42,0.03)}
-label{display:block;font-weight:600;margin-bottom:6px;color:#0f172a;font-size:0.9rem}
-.input,select{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e6e9f2;background:#fff;font-size:0.96rem}
+
+/* left panel */
+.panel{padding:14px;border-radius:12px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(12,16,40,0.03)}
+label{display:block;font-weight:600;margin-bottom:6px;color:#071033;font-size:0.88rem}
+.input,select{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e6e9f2;background:#fff;font-size:0.95rem}
 .row{display:flex;gap:10px}
+.small{font-size:0.86rem;color:var(--muted)}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#0f172a}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 10px 26px rgba(79,70,229,0.14)}
-.btn-ghost{background:transparent;border:1px solid #eef2ff}
-.kv{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.tag{background:#f8fafc;padding:6px 10px;border-radius:999px;color:#111827;font-size:0.86rem}
-.small{font-size:0.88rem;color:var(--muted)}
-.list{margin-top:10px;max-height:180px;overflow:auto;border-radius:8px;padding:8px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px dashed rgba(79,70,229,0.04)}
-.list button{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;background:transparent;border:none}
+.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#071033;display:inline-flex;gap:8px;align-items:center}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 22px rgba(79,70,229,0.12)}
+.tag{background:var(--glass);padding:6px 10px;border-radius:999px;color:#0b1220;font-size:0.86rem}
+.list{margin-top:10px;max-height:200px;overflow:auto;border-radius:8px;padding:8px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px dashed rgba(79,70,229,0.04)}
+.list button{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;background:transparent;border:none;font-size:0.92rem}
+
+/* right panel */
 .output{display:flex;flex-direction:column;gap:10px}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.status{padding:6px 10px;border-radius:999px;background:#f3f4f6;font-weight:700}
+.pill{padding:6px 10px;border-radius:999px;background:#f3f4f6;font-weight:700}
+.controls{display:flex;gap:8px;align-items:center}
 .result{background:#0b1220;color:#e6eef8;border-radius:10px;padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.95rem;min-height:320px;overflow:auto;white-space:pre-wrap}
 .err{color:var(--danger);background:#fff5f5;border:1px solid rgba(239,68,68,0.08);padding:8px;border-radius:8px;font-weight:600}
-.utility{display:flex;gap:8px;align-items:center}
-.small-muted{color:var(--muted);font-size:0.86rem}
-.spinner{width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,0.12);border-top-color:#fff;animation:spin 1s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.diagram{background:#fff;padding:10px;border-radius:8px;border:1px solid rgba(15,23,42,0.03)}
-.footer{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:4px;color:var(--muted);font-size:0.9rem}
-@media (max-width:980px){.container{grid-template-columns:1fr;max-width:900px}.logo{width:48px;height:48px}}
+.grid-wide{display:grid;grid-template-columns:1fr 360px;gap:12px;margin-top:8px}
+
+/* visuals */
+.diagram{background:#fff;padding:10px;border-radius:8px;border:1px solid rgba(12,16,40,0.03)}
+.chartBox{height:220px;border-radius:8px;background:#fff;padding:8px;border:1px solid rgba(12,16,40,0.03)}
+
+/* responsive */
+@media (max-width:980px){.container{grid-template-columns:1fr;padding:12px}.logo{width:48px;height:48px}}
+kbd{background:#111827;color:#fff;padding:4px 6px;border-radius:6px;font-size:0.82rem}
+.footer{grid-column:1/-1;display:flex;justify-content:space-between;color:var(--muted);font-size:0.88rem;padding-top:6px}
 </style>
 </head>
 <body>
-<div class="container" role="main" aria-label="API Viewer Pro">
+<div class="container" role="main" aria-label="API Viewer UX Pro">
   <div class="header">
     <div class="logo" aria-hidden="true">API</div>
     <div class="title">
-      <h1>API Viewer — Pro UI ✨</h1>
-      <p class="small">Modern, accessible and feature-rich UI — presets, history, charts, Mermaid diagram and handy utilities.</p>
+      <h1>API Viewer — UX Pro ✨</h1>
+      <p class="small">สวยงาม ใช้งานง่าย — presets, history, pretty/raw, Mermaid และ chart สรุปข้อมูล</p>
     </div>
   </div>
 
-  <!-- LEFT: Controls -->
-  <section class="card" aria-labelledby="controlsTitle">
-    <h2 id="controlsTitle" style="margin:0 0 8px">Request</h2>
-
+  <!-- LEFT -->
+  <aside class="panel" aria-labelledby="reqTitle">
+    <h2 id="reqTitle" style="margin:0 0 8px">Request 🔎</h2>
     <form id="form" autocomplete="off">
-      <label for="url">API URL (include username & password)</label>
+      <label for="url">Endpoint URL</label>
       <input id="url" class="input" placeholder="http://host:port/player_api.php?username=xxx&password=yyy" required>
 
       <div style="margin-top:10px" class="row">
@@ -75,25 +83,21 @@ button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:poin
           </select>
         </div>
         <div style="width:120px">
-          <label>&nbsp;</label>
-          <button id="btnFetch" class="btn-primary" type="submit" style="width:100%"><i class="mdi mdi-magnify"></i> Get</button>
+          <label style="visibility:hidden">submit</label>
+          <button id="fetchBtn" class="btn primary" type="submit"><span class="mdi mdi-rocket-launch"></span> Go</button>
         </div>
       </div>
 
-      <div class="kv" aria-hidden="false">
-        <div class="tag" id="proxyTag">Proxy: <strong style="margin-left:6px">cors-anywhere</strong></div>
-        <div class="tag" id="rate">Rate: <strong style="margin-left:6px">20 r/m</strong></div>
+      <div class="actions" style="margin-top:12px">
+        <button id="copyUrl" type="button" class="btn"><span class="mdi mdi-content-copy"></span> Copy URL</button>
+        <button id="savePreset" type="button" class="btn"><span class="mdi mdi-bookmark-plus"></span> Save Preset</button>
+        <button id="toggleProxy" type="button" class="btn"><span class="mdi mdi-web"></span> Proxy</button>
+        <button id="clearForm" type="button" class="btn"><span class="mdi mdi-broom"></span> Clear</button>
       </div>
 
-      <div class="actions" role="toolbar" aria-label="quick actions">
-        <button id="btnCopyUrl" type="button" title="Copy request"><i class="mdi mdi-content-copy"></i> Copy URL</button>
-        <button id="btnSavePreset" type="button" title="Save preset"><i class="mdi mdi-bookmark-plus"></i> Save Preset</button>
-        <button id="btnToggleProxy" type="button" title="Toggle proxy"><i class="mdi mdi-web"></i> Toggle Proxy</button>
-        <button id="btnClear" type="button" title="Clear form"><i class="mdi mdi-close-circle"></i> Clear</button>
-      </div>
     </form>
 
-    <div style="margin-top:12px">
+    <div style="margin-top:14px">
       <label>Presets • ตัวอย่าง</label>
       <div id="presets" class="list" role="listbox"></div>
     </div>
@@ -102,150 +106,159 @@ button{border:0;border-radius:10px;padding:10px 12px;font-weight:700;cursor:poin
       <label>History (local)</label>
       <div id="history" class="list"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnClearHistory" class="btn-ghost"><i class="mdi mdi-delete"></i> Clear History</button>
-        <button id="btnResetPresets" class="btn-ghost"><i class="mdi mdi-refresh"></i> Reset Presets</button>
+        <button id="clearHistory" class="btn"><span class="mdi mdi-delete"></span> Clear</button>
+        <button id="resetPresets" class="btn"><span class="mdi mdi-restore"></span> Reset</button>
       </div>
     </div>
 
-    <div style="margin-top:12px" class="small-muted">Tip: Use Ctrl/Cmd+Enter in the URL input to submit. ⚡️</div>
+    <div style="margin-top:12px" class="small">Tip: กด <kbd>Ctrl/Cmd + Enter</kbd> เพื่อส่งเร็ว ⚡</div>
+  </aside>
+
+  <!-- RIGHT -->
+  <section class="panel output" aria-labelledby="outTitle">
+    <h2 id="outTitle" style="margin:0 0 8px">Response 🧾</h2>
+    <div class="toolbar">
+      <div class="meta">
+        <div id="state" class="pill">Ready</div>
+        <div id="httpInfo" class="small" aria-live="polite"></div>
+      </div>
+      <div class="controls">
+        <button id="prettyBtn" class="btn"><span class="mdi mdi-format-color-text"></span> Pretty</button>
+        <button id="rawBtn" class="btn"><span class="mdi mdi-console"></span> Raw</button>
+        <button id="copyRes" class="btn"><span class="mdi mdi-content-copy"></span> Copy</button>
+        <button id="downloadRes" class="btn"><span class="mdi mdi-download"></span> Download</button>
+      </div>
+    </div>
+
+    <div id="error" class="err" style="display:none"></div>
+    <pre id="result" class="result" tabindex="0" aria-live="polite">-- ผลลัพธ์จะแสดงที่นี่ --</pre>
+
+    <div class="grid-wide">
+      <div class="diagram">
+        <div class="small" style="margin-bottom:6px">Flowchart</div>
+        <div class="mermaid" id="flow">
+flowchart LR
+  U[User enters URL] --> V{Validate URL}
+  V -->|OK| F[Build request]
+  V -->|Missing creds| E[Show error]
+  F --> P[Fetch (proxy optional)]
+  P --> R[Parse response]
+  R --> D[Render & Chart]
+        </div>
+      </div>
+
+      <div>
+        <div class="small" style="margin-bottom:6px">Response Insight 📊</div>
+        <div id="chart" class="chartBox"></div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px" class="small">Status: <span id="lastAction">—</span></div>
   </section>
 
-  <!-- RIGHT: Output, charts -->
-  <section class="output">
-    <div class="card" style="padding:12px">
-      <div class="toolbar">
-        <div class="meta">
-          <div id="status" class="status">Ready</div>
-          <div id="http" class="small-muted"></div>
-        </div>
-        <div class="utility">
-          <button id="btnPretty" class="btn-ghost" title="Pretty view"><i class="mdi mdi-format-align-left"></i></button>
-          <button id="btnRaw" class="btn-ghost" title="Raw view"><i class="mdi mdi-console"></i></button>
-          <button id="btnCopy" class="btn-ghost" title="Copy response"><i class="mdi mdi-content-copy"></i></button>
-          <button id="btnDownload" class="btn-ghost" title="Download JSON"><i class="mdi mdi-download"></i></button>
-        </div>
-      </div>
-
-      <div id="err" class="err" style="display:none;margin-top:10px"></div>
-      <pre id="result" class="result" tabindex="0" aria-live="polite">-- ผลลัพธ์จะปรากฏที่นี่ --</pre>
-
-      <div style="display:flex;gap:12px;margin-top:12px;align-items:flex-start">
-        <div style="flex:1">
-          <div class="diagram">
-            <div class="small" style="margin-bottom:6px">Quick flow (Mermaid)</div>
-            <div class="mermaid" id="mermaidBlock">
-              graph LR
-              A[User enters URL] --> B{Validate}
-              B -->|ok| C[Fetch (proxy optional)]
-              B -->|bad| D[Show error]
-              C --> E[Parse & display]
-            </div>
-          </div>
-        </div>
-        <div style="width:320px">
-          <div class="small" style="margin-bottom:6px">Response insight (chart)</div>
-          <div id="chart" style="height:200px;border-radius:8px;background:#fff;padding:8px;border:1px solid rgba(15,23,42,0.03)"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer small-muted">
-      <div>💡 Built for clarity • Uses cors-anywhere for CORS (toggleable)</div>
-      <div>⤴️ Last action: <span id="lastAction">—</span></div>
-    </div>
-  </section>
+  <div class="footer">
+    <div>Made with ❤️ — UX Pro • Icons: mdi • Diagram: Mermaid • Charts: ECharts</div>
+    <div class="small">Width capped at 1200px</div>
+  </div>
 </div>
 
 <script>
-mermaid.initialize({startOnLoad:true, theme:'base', themeVariables: {primaryColor:'#4f46e5', edgeLabelBackground:'#fff'}});
-const PROXY='https://cors-anywhere.herokuapp.com/'; // UI-only default (toggleable)
-let useProxy=true, lastJson=null, pretty=true;
-const DEFAULTS=[
-  {n:'get_info (example)', u:'http://example.local/player_api.php?username=user&password=pass&action=get_info'},
+mermaid.initialize({startOnLoad:true, theme:'base', securityLevel:'loose'});
+const $ = id => document.getElementById(id);
+const url = $('url'), action = $('action'), presetsBox = $('presets'), historyBox = $('history');
+const result = $('result'), errorBox = $('error'), state = $('state'), httpInfo = $('httpInfo'), lastAction = $('lastAction');
+let useProxy = true, lastJson = null, pretty = true;
+const PROXY = 'https://cors-anywhere.herokuapp.com/';
+
+const DEFAULTS = [
+  {n:'get_info (example) 🧾', u:'http://example.local/player_api.php?username=user&password=pass&action=get_info'},
   {n:'get_simple_info', u:'http://example.local/player_api.php?username=user&password=pass&action=get_simple_info'},
   {n:'get_live_streams', u:'http://example.local/player_api.php?username=user&password=pass&action=get_live_streams'}
 ];
-const $ = id => document.getElementById(id) || document.querySelector(id);
-
-const urlIn=$('#url'), actionSel=$('#action'), presetsBox=$('#presets'), historyBox=$('#history'),
-  statusEl=$('#status'), httpEl=$('#http'), resultEl=$('#result'), errEl=$('#err'), lastAction=$('#lastAction'),
-  btnFetch=$('#btnFetch');
 
 function ls(k,v){ if(v===undefined) return JSON.parse(localStorage.getItem(k)||'null'); localStorage.setItem(k,JSON.stringify(v)); }
-function loadPresets(){ return ls('pv_presets')||DEFAULTS; }
-function savePresets(a){ ls('pv_presets',a); renderPresets(); }
-function renderPresets(){ const a=loadPresets(); presetsBox.innerHTML=''; a.forEach(p=>{const b=document.createElement('button');b.textContent=p.n;b.title=p.u;b.onclick=()=>urlIn.value=p.u;presetsBox.appendChild(b);}); }
-function loadHistory(){ return ls('pv_history')||[]; }
-function saveHistory(u){ if(!u) return; let h=loadHistory(); h=h.filter(x=>x.u!==u); h.unshift({u,t:Date.now()}); h=h.slice(0,12); ls('pv_history',h); renderHistory(); }
-function renderHistory(){ const h=loadHistory(); historyBox.innerHTML=''; if(!h.length){ historyBox.innerHTML='<div style="color:var(--muted)">ไม่มีประวัติ</div>'; return;} h.forEach(it=>{const b=document.createElement('button');b.innerHTML=`<strong style="font-size:0.95rem">${it.u}</strong><div style="font-size:0.82rem;color:var(--muted)">${new Date(it.t).toLocaleString()}</div>`; b.onclick=()=>urlIn.value=it.u; historyBox.appendChild(b); }); }
+function loadPresets(){ return ls('presets')||DEFAULTS; }
+function savePresets(a){ ls('presets',a); renderPresets(); }
+function renderPresets(){ const a=loadPresets(); presetsBox.innerHTML=''; a.forEach(p=>{const b=document.createElement('button');b.textContent=p.n;b.title=p.u;b.onclick=()=>url.value=p.u;presetsBox.appendChild(b);}); }
+function loadHistory(){ return ls('history')||[]; }
+function saveHistory(u){ if(!u) return; let h=loadHistory(); h=h.filter(x=>x.u!==u); h.unshift({u,t:Date.now()}); h=h.slice(0,12); ls('history',h); renderHistory(); }
+function renderHistory(){ const h=loadHistory(); historyBox.innerHTML=''; if(!h.length){ historyBox.innerHTML='<div class="small">ไม่มีประวัติ</div>'; return;} h.forEach(it=>{const b=document.createElement('button'); b.innerHTML=`<strong style="font-size:0.92rem">${it.u}</strong><div style="font-size:0.82rem;color:var(--muted)">${new Date(it.t).toLocaleString()}</div>`; b.onclick=()=>url.value=it.u; historyBox.appendChild(b); }); }
 renderPresets(); renderHistory();
 
-function setStatus(t,loading=false){ statusEl.textContent=t; httpEl.textContent=''; if(loading) statusEl.innerHTML = t + ' <span class="spinner" aria-hidden="true"></span>'; }
-function showError(m){ errEl.style.display='block'; errEl.textContent=m; setStatus('Error'); }
-function clearError(){ errEl.style.display='none'; errEl.textContent=''; setStatus('Ready'); }
-function buildUrl(raw){ try{ const u=new URL(raw); if(!u.searchParams.get('action') && actionSel.value) u.searchParams.set('action',actionSel.value); else if(!u.searchParams.get('action')) u.searchParams.set('action','get_info'); return useProxy? PROXY + u.toString() : u.toString(); }catch(e){return null;} }
+function setState(t,loading=false){ state.textContent=t; if(loading) state.innerHTML = t + ' ⏳'; }
+function showError(txt){ errorBox.style.display='block'; errorBox.textContent=txt; setState('Error'); }
+function clearError(){ errorBox.style.display='none'; errorBox.textContent=''; setState('Ready'); }
+
+function buildTarget(raw){
+  try{
+    const u = new URL(raw);
+    if(!u.searchParams.get('action') && action.value) u.searchParams.set('action', action.value);
+    else if(!u.searchParams.get('action')) u.searchParams.set('action','get_info');
+    return useProxy ? PROXY + u.toString() : u.toString();
+  }catch(e){ return null; }
+}
 
 function renderResult(data, code){
-  lastJson=data; httpEl.textContent = code ? 'HTTP '+code : '';
+  lastJson = data;
+  httpInfo.textContent = code ? 'HTTP '+code : '';
   clearError();
-  resultEl.textContent = pretty ? JSON.stringify(data,null,2) : JSON.stringify(data);
-  updateChartFromData(data);
+  result.textContent = pretty ? JSON.stringify(data,null,2) : JSON.stringify(data);
+  updateChart(data);
   lastAction.textContent = new Date().toLocaleString();
 }
 
-function updateChartFromData(data){
+function updateChart(data){
   try{
-    const chartDom = document.getElementById('chart');
-    if(!chartDom._ec){ chartDom._ec = echarts.init(chartDom); chartDom._ec.setOption({title:{text:''},tooltip:{},xAxis:{type:'category',data:[]},yAxis:{type:'value'},series:[{type:'bar',data:[]} ]}); }
-    const ec = chartDom._ec;
-    // attempt to find arrays: streams or bouquets
-    let labels=[], values=[];
-    if(data && data.videos && Array.isArray(data.videos)){ labels = data.videos.slice(0,6).map((v,i)=>v.name||'item'+i); values = data.videos.slice(0,6).map(()=>1); }
-    else if(data && data.simple){ labels=Object.keys(data.simple).slice(0,6); values=labels.map(k=>Number(data.simple[k])||1); }
-    else if(data && data.playlists){ labels=Object.keys(data.playlists).slice(0,6); values=labels.map(k=>Array.isArray(data.playlists[k])?data.playlists[k].length:1); }
-    else { labels=['No numeric data']; values=[0]; }
-    ec.setOption({xAxis:{data:labels},series:[{data:values}]});
+    const dom = document.getElementById('chart');
+    if(!dom._ech) dom._ech = echarts.init(dom);
+    const ec = dom._ech;
+    let labels = [], values = [];
+    if(Array.isArray(data?.videos)){
+      labels = data.videos.slice(0,8).map((v,i)=>v.name||'v'+i); values = data.videos.slice(0,8).map(()=>1);
+    } else if(data && typeof data === 'object'){
+      const keys = Object.keys(data).slice(0,8);
+      labels = keys; values = keys.map(k=>{ const v=data[k]; return typeof v === 'number' ? v : (Array.isArray(v)? v.length : 1); });
+    } else { labels=['No data']; values=[0]; }
+    ec.setOption({xAxis:{type:'category',data:labels},yAxis:{type:'value'},series:[{type:'bar',data:values,color: ['#7c3aed']}],tooltip:{}} , {notMerge:true});
   }catch(e){ console.warn(e); }
 }
 
-document.getElementById('form').addEventListener('submit',(ev)=>{
-  ev.preventDefault(); clearError();
-  const raw = urlIn.value.trim(); if(!raw){ showError('กรุณากรอก URL'); return; }
-  const target = buildUrl(raw); if(!target){ showError('URL ไม่ถูกต้อง'); return; }
+/* form handling */
+$('form').addEventListener('submit', async e=>{
+  e.preventDefault(); clearError();
+  const raw = url.value.trim(); if(!raw){ showError('กรุณากรอก URL'); return; }
+  const target = buildTarget(raw); if(!target){ showError('URL ไม่ถูกต้อง'); return; }
+  try{ const u = new URL(raw); if(!u.searchParams.get('username') || !u.searchParams.get('password')){ showError('URL ต้องมี username และ password'); return; } }catch(e){ showError('URL ไม่ถูกต้อง'); return; }
+  setState('Loading', true); result.textContent='Loading...'; saveHistory(raw);
   try{
-    const u = new URL(raw); if(!u.searchParams.get('username')||!u.searchParams.get('password')){ showError('URL ต้องมี username และ password'); return; }
-  }catch(e){ showError('URL ไม่ถูกต้อง'); return; }
-  setStatus('Loading', true); resultEl.textContent='Loading...'; saveHistory(raw);
-  fetch(target, {headers:{'X-Requested-With':'XMLHttpRequest'}})
-    .then(async r=>{
-      setStatus('Processing'); if(!r.ok) throw new Error('HTTP '+r.status);
-      const ct = r.headers.get('content-type')||'';
-      if(ct.includes('application/json')){ const j = await r.json(); renderResult(j, r.status); }
-      else { const txt = await r.text(); resultEl.textContent = txt; httpEl.textContent='HTTP '+r.status; lastAction.textContent=new Date().toLocaleString(); }
-    })
-    .catch(err=>{ showError('เกิดข้อผิดพลาด: '+err.message); resultEl.textContent=''; })
-    .finally(()=> setTimeout(()=> setStatus('Ready'), 400));
+    const res = await fetch(target, {headers:{'X-Requested-With':'XMLHttpRequest'}});
+    setState('Processing');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const ct = res.headers.get('content-type')||'';
+    if(ct.includes('application/json')){ const j = await res.json(); renderResult(j, res.status); }
+    else { const txt = await res.text(); result.textContent = txt; httpInfo.textContent = 'HTTP '+res.status; lastAction.textContent = new Date().toLocaleString(); }
+  }catch(err){ showError('เกิดข้อผิดพลาด: '+err.message); result.textContent=''; }
+  setTimeout(()=>setState('Ready'), 300);
 });
 
-$('#btnCopy').addEventListener('click', ()=>{ if(!resultEl.textContent) return; navigator.clipboard.writeText(resultEl.textContent).then(()=> setStatus('Copied')).catch(()=> showError('คัดลอกไม่สำเร็จ')); });
-$('#btnDownload').addEventListener('click', ()=>{ if(!resultEl.textContent) return; const b=new Blob([resultEl.textContent],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='response.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); });
-$('#btnCopyUrl').addEventListener('click', ()=>{ const t=buildUrl(urlIn.value.trim()); if(!t) return showError('ไม่มี URL'); navigator.clipboard.writeText(t).then(()=> setStatus('URL copied')).catch(()=> showError('คัดลอกไม่สำเร็จ')); });
-$('#btnToggleProxy').addEventListener('click', ()=>{ useProxy=!useProxy; $('#proxyTag').textContent = 'Proxy: '+(useProxy?'cors-anywhere':'disabled'); setStatus(useProxy?'Proxy ON':'Proxy OFF'); });
-$('#btnSavePreset').addEventListener('click', ()=>{ const v=urlIn.value.trim(); if(!v) return showError('ไม่มี URL ให้บันทึก'); const name=prompt('ตั้งชื่อ preset:')||v; const p=loadPresets(); p.unshift({n:name,u:v}); ls('pv_presets',p.slice(0,20)); renderPresets(); setStatus('Preset saved'); });
-$('#btnClear').addEventListener('click', ()=>{ urlIn.value=''; resultEl.textContent='-- ผลลัพธ์จะปรากฏที่นี่ --'; clearError(); urlIn.focus(); });
-$('#btnClearHistory').addEventListener('click', ()=>{ if(confirm('ลบประวัติทั้งหมด?')){ localStorage.removeItem('pv_history'); renderHistory(); setStatus('History cleared'); }});
-$('#btnResetPresets').addEventListener('click', ()=>{ if(confirm('คืนค่า presets เริ่มต้น?')){ localStorage.removeItem('pv_presets'); renderPresets(); setStatus('Presets reset'); }});
-$('#btnPretty').addEventListener('click', ()=>{ pretty=true; if(lastJson) resultEl.textContent=JSON.stringify(lastJson,null,2); $('#btnPretty').classList.add('btn-primary'); $('#btnRaw').classList.remove('btn-primary'); });
-$('#btnRaw').addEventListener('click', ()=>{ pretty=false; if(lastJson) resultEl.textContent=JSON.stringify(lastJson); $('#btnRaw').classList.add('btn-primary'); $('#btnPretty').classList.remove('btn-primary'); });
+/* controls */
+$('copyUrl').addEventListener('click',()=>{ const t=buildTarget(url.value.trim()); if(!t) return showError('ไม่มี URL'); navigator.clipboard.writeText(t).then(()=>setState('URL copied')).catch(()=>showError('คัดลอกไม่สำเร็จ')); });
+$('toggleProxy').addEventListener('click',()=>{ useProxy = !useProxy; setState(useProxy? 'Proxy ON':'Proxy OFF'); });
+$('savePreset').addEventListener('click',()=>{ const v=url.value.trim(); if(!v) return showError('ไม่มี URL ให้บันทึก'); const name = prompt('ตั้งชื่อ preset:') || v; const p = loadPresets(); p.unshift({n:name,u:v}); savePresets(p.slice(0,20)); setState('Preset saved'); });
+$('clearForm').addEventListener('click',()=>{ url.value=''; result.textContent='-- ผลลัพธ์จะแสดงที่นี่ --'; clearError(); url.focus(); });
+$('clearHistory').addEventListener('click',()=>{ if(confirm('ลบประวัติทั้งหมด?')){ localStorage.removeItem('history'); renderHistory(); setState('History cleared'); }});
+$('resetPresets').addEventListener('click',()=>{ if(confirm('คืนค่า presets เริ่มต้น?')){ localStorage.removeItem('presets'); renderPresets(); setState('Presets reset'); }});
+$('copyRes').addEventListener('click',()=>{ if(!result.textContent) return; navigator.clipboard.writeText(result.textContent).then(()=>setState('Copied')).catch(()=>showError('คัดลอกไม่สำเร็จ')); });
+$('downloadRes').addEventListener('click',()=>{ if(!result.textContent) return; const b=new Blob([result.textContent],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='response.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); });
+$('prettyBtn').addEventListener('click',()=>{ pretty=true; if(lastJson) result.textContent=JSON.stringify(lastJson,null,2); setState('Pretty'); });
+$('rawBtn').addEventListener('click',()=>{ pretty=false; if(lastJson) result.textContent=JSON.stringify(lastJson); setState('Raw'); });
 
-// keyboard shortcut
-urlIn.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') btnFetch.click(); });
+/* keyboard */
+url.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key==='Enter') $('fetchBtn').click(); });
 
-// initialize small mermaid safe redraw (avoid layout anomalies)
-setTimeout(()=>{ try{ mermaid.init(undefined, document.querySelectorAll('.mermaid')); }catch(e){} },200);
-
-// expose small helper in console
-window.APIViewer = {loadPresets,renderHistory,saveHistory};
+/* init */
+setState('Ready');
+try{ setTimeout(()=>mermaid.init(undefined, document.querySelectorAll('.mermaid')),200); }catch(e){}
 </script>
 </body>
 </html>
