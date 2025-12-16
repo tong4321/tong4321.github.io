@@ -1,290 +1,213 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>API Viewer</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-        * { box-sizing: border-box; }
-        body {
-            background: #f0f2f5;
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            display: flex; justify-content: center; padding: 30px 15px; min-height: 100vh;
-        }
-        .container {
-            background: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            max-width: 720px;
-            width: 100%;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-        h1 {
-            margin: 0;
-            font-weight: 600;
-            font-size: 1.8rem;
-            color: #222;
-            text-align: center;
-        }
-        label {
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: #444;
-            display: block;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1.8px solid #ccc;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-            margin: 10px;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 6px rgba(79, 70, 229, 0.4);
-        }
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 14px 20px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.35);
-            min-width: 120px;
-        }
-        #btnFetch {
-            background-color: #4f46e5;
-            color: white;
-        }
-        #btnFetch:hover,
-        #btnFetch:focus {
-            background-color: #4338ca;
-            box-shadow: 0 8px 20px rgba(67, 56, 202, 0.5);
-            outline: none;
-        }
-        #btnClear {
-            background-color: #e02424;
-            color: white;            
-            box-shadow: 0 6px 12px rgba(224, 36, 36, 0.5);
-        }
-        #btnClear:hover,
-        #btnClear:focus {
-            background-color: #b71b1b;
-            box-shadow: 0 8px 20px rgba(183, 27, 27, 0.6);
-            outline: none;
-        }
-        #result {
-            background-color: #1e1e2f;
-            color: #d4d4fc;
-            font-family: 'Source Code Pro', monospace, monospace;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            border-radius: 12px;
-            padding: 20px;
-            overflow-x: auto;
-            min-height: 300px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
-        }
-        .error {
-            color: #e02424;
-            font-weight: 600;
-            padding: 10px 15px;
-            border-radius: 8px;
-            background-color: #ffe2e2;
-            border: 1.5px solid #e02424;
-            text-align: center;
-            margin-top: -10px;
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px 20px;
-            }
-            button {
-                font-size: 1rem;
-                padding: 12px 16px;
-                min-width: 100px;
-            }
-            .btn-group {
-                gap: 10px;
-            }
-        }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GET URL Examples — ตัวอย่างการเรียกผ่าน URL (GET)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.0.96/css/materialdesignicons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{--bg:#f5f7fb;--card:#fff;--accent:#5b21b6;--muted:#6b7280}
+  *{box-sizing:border-box}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:linear-gradient(180deg,#f8fafc, #eef2ff);padding:28px;display:flex;justify-content:center}
+  .wrap{width:980px;max-width:96%;display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+  .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:0 8px 30px rgba(31,41,55,0.08)}
+  h1{margin:0;font-size:1.2rem;color:#0f172a;display:flex;gap:10px;align-items:center}
+  p.lead{margin:8px 0 16px;color:var(--muted);font-size:0.95rem}
+  .examples{display:flex;flex-direction:column;gap:8px}
+  .example{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:#fbfbff;border:1px solid #eef2ff}
+  .ex-url{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;font-size:0.88rem;color:#0b1220;overflow:auto}
+  .row{display:flex;gap:8px;align-items:center}
+  button.btn{border:0;background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;display:inline-flex;gap:8px;align-items:center}
+  button.ghost{background:transparent;border:1px solid #e6e9ff;color:var(--accent)}
+  .small{font-size:0.85rem;color:var(--muted)}
+  pre.snip{background:#0f172a;color:#e6f0ff;padding:12px;border-radius:8px;overflow:auto;margin:10px 0;font-size:0.85rem}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chip{background:#f1efff;color:#2b0766;padding:6px 10px;border-radius:999px;font-size:0.8rem}
+  .right-col{display:flex;flex-direction:column;gap:12px}
+  #chart{height:170px;width:100%}
+  .result{background:#0b1220;color:#e6f0ff;padding:14px;border-radius:10px;font-family:ui-monospace,monospace;font-size:0.85rem;min-height:110px;overflow:auto}
+  .svg-deco{width:48px;height:48px;display:inline-block}
+  .hint{font-size:0.9rem;color:var(--muted);margin-top:8px}
+  @media (max-width:920px){.wrap{grid-template-columns:1fr;}.right-col{order:2}}
+</style>
 </head>
 <body>
-    <div class="container" role="main">
-        <h1>API Viewer</h1>
-        <form id="apiForm" autocomplete="off" aria-label="Form for inputting API URL with credentials">
-            <label for="fullUrl">API URL with username &amp; password (e.g. <code>http://xxxx.xxx:8080/player_api.php?username=xxx&amp;password=yyy</code>):</label>
-            <input type="text" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx" required aria-required="true" />
-            <div class="btn-group">
-                <button type="submit" id="btnFetch">Get Info</button>
-                <button type="button" id="btnClear">Clear</button>
+<div class="wrap">
+  <section class="card">
+    <h1>🔗 ตัวอย่างการเรียกผ่าน URL (GET)</h1>
+    <p class="lead">ส่ง URL เป็น query parameter ชื่อ <strong>url</strong> หรือ <strong>u</strong> เพื่อให้หน้าเว็บอ่านค่าอัตโนมัติ (ต้อง encode ค่า URL ที่มี &amp; และ ?)</p>
+
+    <div class="examples">
+      <div class="example">
+        <div style="flex:1">
+          <div class="row">
+            <div style="flex:1">
+              <div class="small">ตัวอย่าง API แบบพื้นฐาน</div>
+              <div class="ex-url">http://api.example.com/player_api.php?username=user1&amp;password=pass1</div>
             </div>
-        </form>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="openAsParam('http://api.example.com/player_api.php?username=user1&password=pass1')">
+                <i class="mdi mdi-link-variant"></i> เปิดด้วย ?url=
+              </button>
+              <button class="btn ghost" onclick="copyText('http://api.example.com/player_api.php?username=user1&password=pass1')">📋 คัดลอก</button>
+            </div>
+          </div>
+          <div class="hint">จะต้อง encode เมื่อใส่ใน query string เช่น encodeURIComponent(url)</div>
+        </div>
+      </div>
 
-        <div class="error" id="error" role="alert" aria-live="polite" style="display:none;"></div>
+      <div class="example">
+        <div style="flex:1">
+          <div class="row">
+            <div style="flex:1">
+              <div class="small">ตัวอย่างที่มีพารามิเตอร์อื่น ๆ (type/output)</div>
+              <div class="ex-url">http://other.host/get.php?username=abc&amp;password=123&amp;type=get&amp;output=json</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="openAsParam('http://other.host/get.php?username=abc&password=123&type=get&output=json')">
+                <i class="mdi mdi-open-in-new"></i> เปิด
+              </button>
+              <button class="btn ghost" onclick="copyText('http://other.host/get.php?username=abc&password=123&type=get&output=json')">📋 คัดลอก</button>
+            </div>
+          </div>
+          <div class="hint">ระบบจะเปลี่ยน get.php → player_api.php และตัด type/output ออก (ถ้าต้องการ)</div>
+        </div>
+      </div>
 
-        <pre id="result" aria-live="polite" aria-label="API response output"></pre>
+      <div class="example">
+        <div style="flex:1">
+          <div class="row">
+            <div style="flex:1">
+              <div class="small">ตัวอย่างการใส่เป็นพารามิเตอร์สั้น (u)</div>
+              <div class="ex-url">https://service.io/player_api.php?username=demo&amp;password=demo123</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn" onclick="openAsParam('https://service.io/player_api.php?username=demo&password=demo123','u')">🔁 เปิดด้วย u=</button>
+              <button class="btn ghost" onclick="copyText('https://service.io/player_api.php?username=demo&password=demo123')">📋 คัดลอก</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        function convertTimestamp(ts) {
-            const t = parseInt(ts);
-            if (isNaN(t)) return ts;
-            const d = new Date(t * 1000);
-            return d.toISOString().replace('T', ' ').substr(0, 19);
-        }
+    <div style="margin-top:14px">
+      <label class="small">ใส่ URL ของคุณเพื่อสร้างลิงก์ ?url= (หน้าเดียวใช้งานได้ทันที)</label>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="build" type="text" placeholder="Paste API URL เช่น http://host/player_api.php?username=...&password=..." style="flex:1;padding:10px;border-radius:8px;border:1px solid #e6e9ff;font-family:inherit" />
+        <button class="btn" onclick="buildLink()">🔗 สร้าง</button>
+        <button class="btn ghost" onclick="doEncode()">🧾 Encode</button>
+      </div>
+      <pre class="snip" id="builtOutput" aria-hidden="false">ตัวอย่างผลลัพธ์จะปรากฏที่นี่</pre>
+      <div class="meta">
+        <div class="chip">แนะนำ: ใช้ encodeURIComponent() เมื่อ URL มี &amp; หรือ ?</div>
+        <div class="chip">ความปลอดภัย ⚠ ส่ง username/password ใน query string อาจไม่ปลอดภัย</div>
+      </div>
+    </div>
 
-        const form = document.getElementById('apiForm');
-        const resultElem = document.getElementById('result');
-        const errorElem = document.getElementById('error');
-        const btnClear = document.getElementById('btnClear');
-        const inputUrl = document.getElementById('fullUrl');
+    <div style="margin-top:16px">
+      <div class="small">ตัวอย่างสั้น (copy-ready)</div>
+      <pre class="snip">// ตัวอย่าง JavaScript (client) ใช้ window.location.search
+const params = new URLSearchParams(window.location.search);
+const api = params.get('url') || params.get('u');
+// ใช้ decodeURIComponent() ถ้าจำเป็น</pre>
+    </div>
+  </section>
 
-        function getQueryParam(param) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(param);
-        }
+  <aside class="right-col">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div class="small">ภาพรวมตัวอย่าง</div>
+          <strong style="display:block;margin-top:6px">การเรียกผ่าน GET — ?url= / ?u=</strong>
+        </div>
+        <svg class="svg-deco" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <rect x="2" y="3" width="20" height="14" rx="2" fill="#eef2ff"/>
+          <path d="M7 14v3h10v-3" stroke="#5b21b6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="8.5" cy="6.5" r="0.9" fill="#5b21b6"/>
+        </svg>
+      </div>
 
-        // รับค่า url หรือ u เป็น shortcut
-        const prefillUrl = getQueryParam('url') || getQueryParam('u');
-        if (prefillUrl) {
-            try {
-                // ถ้าพารามิเตอร์ถูก encode มา ให้ decode ก่อน
-                inputUrl.value = decodeURIComponent(prefillUrl);
-            } catch (e) {
-                inputUrl.value = prefillUrl;
-            }
-        }
+      <div id="chart"></div>
+      <div class="small" style="margin-top:6px">ตัวอย่างนี้แสดงสัดส่วนประเภทลิงก์ที่มักพบบ่อย</div>
+    </div>
 
-        // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php"
-        function fixApiPath(urlObj) {
-            if (urlObj.pathname.endsWith("get.php")) {
-                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
-            }
-            return urlObj;
-        }
+    <div class="card">
+      <div class="small">การไหลของกระบวนการ</div>
+      <div class="mermaid" id="flow">
+        graph TB
+        A[ผู้เรียกหน้าเว็บ] --> B{มี param url / u ?}
+        B -- ใช่ --> C[decodeURIComponent → แสดงใน input]
+        C --> D{ต้อง fetch ทันทีไหม?}
+        D -- auto=true → E[เรียก fetch ผ่าน proxy (ถ้าจำเป็น)]
+        D -- no → F[ผู้ใช้กดปุ่ม Get Info]
+        B -- ไม่ --> G[ผู้ใช้กรอก URL ด้วยตนเอง]
+      </div>
+    </div>
 
-        // ฟังก์ชันที่ทำการ fetch จริง ๆ (สามารถเรียกได้จากอีเวนต์ต่าง ๆ)
-        function fetchApiFromUrlString(fullUrl) {
-            clearError();
-            if (!fullUrl) {
-                showError('กรุณากรอก URL');
-                return;
-            }
+    <div class="card">
+      <div class="small">ผลลัพธ์ (ตัวอย่าง)</div>
+      <div id="result" class="result">ไม่มีการเรียก API ภายนอก — กดตัวอย่างเพื่อเปิดหน้าพร้อมพารามิเตอร์</div>
+    </div>
+  </aside>
+</div>
 
-            let urlObj;
-            try {
-                urlObj = new URL(fullUrl);
-            } catch (err) {
-                showError('URL ไม่ถูกต้อง');
-                resultElem.textContent = '';
-                return;
-            }
+<script>
+mermaid.initialize({startOnLoad:true,theme:'base',themeVariables:{edgeLabelBackground:'#fff'}});
+const chart = echarts.init(document.getElementById('chart'));
+chart.setOption({
+  tooltip:{},legend:{show:false},
+  series:[{type:'pie',radius:['40%','70%'],avoidLabelOverlap:false,
+    data:[
+      {value:55,name:'player_api.php'},
+      {value:25,name:'get.php (converted)'},
+      {value:20,name:'other'}
+    ],
+    label:{show:true,formatter:'{b}\\n{d}%'}
+  ]}
+});
 
-            // เปลี่ยน get.php เป็น player_api.php
-            urlObj = fixApiPath(urlObj);
+function openAsParam(url, key='url') {
+  const encoded = encodeURIComponent(url);
+  const target = `${location.origin}${location.pathname}?${key}=${encoded}`;
+  // open in new tab so user can see addressbar example
+  window.open(target, '_blank');
+}
+function copyText(txt){
+  navigator.clipboard?.writeText(txt).then(()=>alert('คัดลอกแล้ว ✅'),()=>prompt('Copy manually:',txt));
+}
+function buildLink(){
+  const raw = document.getElementById('build').value.trim();
+  if(!raw){alert('กรุณาใส่ URL');return;}
+  const enc = encodeURIComponent(raw);
+  const out = `${location.origin}${location.pathname}?url=${enc}`;
+  document.getElementById('builtOutput').textContent = out;
+}
+function doEncode(){
+  const raw = document.getElementById('build').value.trim();
+  if(!raw){alert('กรุณาใส่ URL');return;}
+  document.getElementById('builtOutput').textContent = encodeURIComponent(raw);
+}
 
-            // ลบพารามิเตอร์ type และ output ออกก่อนใช้ fetch
-            urlObj.searchParams.delete('type');
-            urlObj.searchParams.delete('output');
-
-            let username = urlObj.searchParams.get('username');
-            let password = urlObj.searchParams.get('password');
-
-            if (!username || !password) {
-                showError('กรุณาใส่ username และ password ใน URL');
-                resultElem.textContent = '';
-                return;
-            }
-
-            if (!urlObj.searchParams.get('action')) {
-                urlObj.searchParams.set('action', 'get_info');
-            }
-
-            // ใช้ cors-anywhere proxy โดยตรงกับ URL ที่แก้ไขแล้ว
-            // สามารถปรับเป็น encodeURIComponent(urlObj.toString()) ได้ถ้าต้องการ
-            const proxyUrl = `https://cors-anywhere.com/${urlObj.toString()}`;
-
-            resultElem.textContent = 'Loading...';
-
-            fetch(proxyUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'  // บางครั้ง CORS Anywhere ต้อง header นี้
-                }
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
-                    // บาง API อาจคืนค่าที่ไม่ใช่ JSON — ถ้าเป็นกรณีนี้ อาจต้องปรับ
-                    return response.json();
-                })
-                .then(jsonData => {
-                    // แปลง timestamp เป็นรูปแบบ readable
-                    if (jsonData.user_info) {
-                        jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
-                        jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
-                    }
-                    if (jsonData.server_info) {
-                        jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
-                    }
-
-                    resultElem.textContent = JSON.stringify(jsonData, null, 4);
-                })
-                .catch(err => {
-                    showError('เกิดข้อผิดพลาด: ' + err.message);
-                    resultElem.textContent = '';
-                });
-        }
-
-        form.addEventListener('submit', event => {
-            event.preventDefault();
-            const fullUrl = inputUrl.value.trim();
-            fetchApiFromUrlString(fullUrl);
-        });
-
-        btnClear.addEventListener('click', () => {
-            inputUrl.value = '';
-            clearError();
-            resultElem.textContent = '';
-            inputUrl.focus();
-        });
-
-        function showError(msg) {
-            errorElem.style.display = 'block';
-            errorElem.textContent = msg;
-        }
-
-        function clearError() {
-            errorElem.style.display = 'none';
-            errorElem.textContent = '';
-        }
-
-        // ถ้ามีค่า prefillUrl ให้เรียก fetch อัตโนมัติหลังโหลด
-        if (prefillUrl) {
-            // เล็กน้อยหน่วงเวลาให้ DOM พร้อม (และให้ผู้ใช้เห็น input ถูกเติม)
-            setTimeout(() => {
-                // เรียกฟังก์ชัน fetch โดยตรง (แทนการ dispatch event) เพื่อให้พฤติกรรมชัดเจน
-                fetchApiFromUrlString(inputUrl.value.trim());
-            }, 200);
-        }
-    </script>
+// ถ้ามี ?url หรือ ?u ให้แสดงรายละเอียดบนหน้า (ไม่ทำ fetch โดยอัตโนมัติในตัวอย่างนี้)
+(function showParam(){
+  const p = new URLSearchParams(location.search);
+  const raw = p.get('url') || p.get('u');
+  if(!raw) return;
+  let decoded = raw;
+  try { decoded = decodeURIComponent(raw); } catch(e){}
+  const msg = [
+    '📥 พบพารามิเตอร์ใน URL:',
+    '',
+    `raw: ${raw}`,
+    `decoded: ${decoded}`,
+    '',
+    'คำแนะนำ: หาก URL นี้มี & หรือ ? ควร encode ด้วย encodeURIComponent() ก่อนใส่เป็นค่าพารามิเตอร์',
+    'ตัวอย่างการเปิด: window.location = "?url="+encodeURIComponent(apiUrl)'
+  ].join('\\n');
+  document.getElementById('result').textContent = msg;
+})();
+</script>
 </body>
 </html>
