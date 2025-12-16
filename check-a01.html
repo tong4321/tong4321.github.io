@@ -3,423 +3,277 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IPTV M3U Reader — StreamCraft</title>
+  <title>IPTV Studio — M3U Parser & Web Player</title>
 
   <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
 
-  <!-- ECharts, Mermaid, hls.js -->
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
-  <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
 
   <style>
-    :root{--bg:#071226;--card:#0b1630;--muted:#9aa4b2;--accent1:#60a5fa;--accent2:#2dd4bf}
-    *{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),#031022);color:#e6eef6}
-    .wrap{display:grid;grid-template-columns:280px 1fr;gap:20px;padding:22px;min-height:100vh}
-    .sidebar{background:linear-gradient(180deg,var(--card),#071224);border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
-    .logo{display:flex;align-items:center;gap:12px}
-    .logo .badge{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;color:#012;font-weight:800}
-    .logo h1{margin:0;font-size:16px}
-    nav{margin-top:14px;display:flex;flex-direction:column;gap:8px}
-    nav a{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600}
+    :root{
+      --bg:#071226;--card:#07162a;--muted:#9fb0c8;--accent1:#60a5fa;--accent2:#2dd4bf;
+      --glass: rgba(255,255,255,0.03);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color-scheme: dark;color:#e6eef6;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071226 0%, #031226 100%);-webkit-font-smoothing:antialiased}
+    .app{display:grid;grid-template-columns:300px 1fr;gap:20px;padding:24px;min-height:100vh}
+    .panel{background:linear-gradient(180deg,var(--card),#041226);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    header.brand{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--accent1));display:flex;align-items:center;justify-content:center;color:#022;font-weight:800;font-size:16px}
+    .title{font-weight:700;font-size:16px;margin:0}
+    .subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+    nav a{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;color:var(--muted);text-decoration:none;margin-top:8px}
     nav a:hover{background:rgba(255,255,255,0.02);color:#fff}
-    .hint{margin-top:12px;color:var(--muted);font-size:13px}
+    .hint{font-size:12px;color:var(--muted);margin-top:12px}
 
+    /* main area */
     main{display:flex;flex-direction:column;gap:14px}
-    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:12px;border-radius:12px;box-shadow:0 8px 30px rgba(2,6,23,0.4)}
+    .row{display:flex;gap:14px}
     .controls{display:flex;gap:8px;align-items:center}
-    input[type=url], input[type=text]{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);padding:10px;border-radius:10px;color:inherit;width:100%}
-    .btn{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#012;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+    input[type=url], input[type=text]{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);color:inherit}
+    .btn{background:linear-gradient(90deg,var(--accent2),var(--accent1));color:#022;padding:9px 12px;border-radius:10px;border:0;font-weight:700;cursor:pointer}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-    .two{display:grid;grid-template-columns:1fr 420px;gap:14px}
     .channels{max-height:56vh;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
-    .ch{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;background:rgba(255,255,255,0.01)}
-    .thumb{width:64px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#1f2937,#111827);font-weight:700}
+    .ch{display:flex;gap:12px;align-items:center;padding:8px;border-radius:10px;background:linear-gradient(90deg,rgba(255,255,255,0.01),transparent)}
+    .thumb{width:64px;height:44px;border-radius:8px;background:#0a1220;display:flex;align-items:center;justify-content:center;font-weight:700}
     .meta h4{margin:0;font-size:14px}
-    .meta p{margin:4px 0 0 0;font-size:12px;color:var(--muted)}
+    .meta p{margin:6px 0 0 0;font-size:12px;color:var(--muted)}
     .play-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
-    #videoPlayer{width:100%;height:240px;background:#000;border-radius:8px}
-    .charts{display:flex;gap:12px;margin-top:8px}
-    #chartGroups,#chartProto{height:160px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
-    .mermaid-card{padding:8px}
-    .tools{display:flex;gap:8px;margin-top:8px}
 
-    footer{color:var(--muted);font-size:13px;padding:8px;text-align:center}
+    #video{width:100%;height:320px;background:#000;border-radius:10px}
+    .side-top{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .charts{display:flex;gap:12px;margin-top:10px}
+    #chartGroups,#chartProto{height:160px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
+    .mermaid-wrap{padding:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:8px;margin-top:10px}
+    footer{color:var(--muted);font-size:13px;padding:8px;text-align:center;margin-top:8px}
 
     @media (max-width:980px){
-      .wrap{grid-template-columns:1fr;padding:12px}
-      .two{grid-template-columns:1fr}
-      #videoPlayer{height:200px}
+      .app{grid-template-columns:1fr; padding:12px}
+      #video{height:220px}
+      .row{flex-direction:column}
     }
   </style>
 </head>
 <body>
-  <div class="wrap" role="application" aria-label="M3U IPTV Utility">
-    <aside class="sidebar">
-      <div class="logo">
-        <div class="badge">IPTV</div>
+  <div class="app" role="application" aria-label="IPTV Studio">
+    <aside class="panel" aria-label="Sidebar">
+      <header class="brand">
+        <div class="logo">IPTV</div>
         <div>
-          <h1>StreamCraft</h1>
-          <div style="font-size:12px;color:var(--muted)">M3U Parser • Player • Analytics</div>
+          <div class="title">IPTV Studio</div>
+          <div class="subtitle">M3U Parser • Web Player • Analytics</div>
         </div>
-      </div>
+      </header>
 
-      <nav aria-label="Main">
-        <a href="#"><span class="mdi mdi-play-circle-outline"></span> โหลดแผง (M3U)</a>
-        <a href="#"><span class="mdi mdi-file-tree"></span> รายการช่อง</a>
-        <a href="#"><span class="mdi mdi-chart-donut"></span> สถิติ</a>
-        <a href="#"><span class="mdi mdi-cog-outline"></span> การตั้งค่า</a>
+      <nav aria-label="Main nav">
+        <a href="#"><span class="mdi mdi-database"></span>&nbsp;Load M3U</a>
+        <a href="#"><span class="mdi mdi-play-circle"></span>&nbsp;Channels</a>
+        <a href="#"><span class="mdi mdi-chart-donut"></span>&nbsp;Insights</a>
+        <a href="#"><span class="mdi mdi-cog-outline"></span>&nbsp;Settings</a>
       </nav>
 
-      <div class="hint">Tip: ถ้า fetch ลิ้งค์ติด CORS ให้เปิดใช้งาน CORS proxy หรืออัปโหลดไฟล์จากเครื่องของคุณ</div>
+      <div class="hint">Tip: If remote URL is blocked by CORS use the built‑in proxy toggle or upload a file.</div>
+      <div style="margin-top:14px;font-size:13px;color:var(--muted)">
+        <div><span class="mdi mdi-server"></span>&nbsp;Proxy: <span id="proxyState">OFF</span></div>
+        <div style="margin-top:8px"><span class="mdi mdi-flash"></span>&nbsp;HLS via hls.js (autodetect)</div>
+      </div>
     </aside>
 
     <main>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+      <section class="panel">
+        <div class="side-top">
           <div>
-            <strong style="font-size:16px">นำเข้า M3U / m3u8 🔗</strong>
-            <div style="font-size:13px;color:var(--muted)">ป้อน URL หรืออัปโหลดไฟล์ .m3u/.m3u8</div>
+            <strong style="font-size:16px">นำเข้า M3U / m3u8</strong>
+            <div style="font-size:13px;color:var(--muted)">วาง URL หรืออัปโหลดไฟล์ .m3u/.m3u8</div>
           </div>
-          <div style="font-size:13px;color:var(--muted)">รองรับ HLS · RTMP · HTTP</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn" id="fetchBtn"><span class="mdi mdi-cloud-download-outline"></span>&nbsp;Fetch</button>
+            <button class="btn ghost" id="proxyBtn" title="Toggle CORS proxy"><span class="mdi mdi-shield-half-full"></span>&nbsp;Proxy</button>
+          </div>
         </div>
 
         <div style="margin-top:12px" class="controls">
-          <input id="m3uUrl" type="url" placeholder="วางลิงก์ M3U ที่นี่ (เช่น https://...)">
-          <button class="btn" id="fetchBtn">Fetch</button>
-          <button class="btn ghost" id="useProxyBtn" title="ใช้ตัวกลาง CORS">ใช้ CORS proxy</button>
+          <input id="urlInput" type="url" placeholder="วางลิงก์ M3U ที่นี่ เช่น https://example.com/playlist.m3u8">
           <input id="fileInput" type="file" accept=".m3u,.m3u8,text/plain" style="display:none">
-          <button class="btn ghost" id="uploadBtn"><span class="mdi mdi-upload"></span> อัปโหลดไฟล์</button>
+          <button class="btn ghost" id="uploadBtn"><span class="mdi mdi-upload"></span>&nbsp;Upload</button>
         </div>
 
-        <div class="tools">
-          <button class="btn" id="exportJsonBtn">ดาวน์โหลด JSON</button>
-          <button class="btn ghost" id="copyBtn">คัดลอก JSON</button>
-          <button class="btn ghost" id="cleanM3UBtn">ดาวน์โหลด M3U (Clean)</button>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="exportJson">Export JSON</button>
+          <button class="btn ghost" id="copyJson">Copy JSON</button>
+          <button class="btn ghost" id="downloadClean">Download M3U</button>
+          <div id="status" style="margin-left:auto;color:var(--muted);font-size:13px">Ready</div>
         </div>
+      </section>
 
-        <div id="status" style="margin-top:10px;color:var(--muted);font-size:13px">สถานะ: พร้อม</div>
-      </div>
-
-      <div class="two">
-        <section class="card">
+      <div class="row">
+        <section class="panel" style="flex:1">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <strong>รายการช่อง</strong>
             <div style="font-size:13px;color:var(--muted)"><span id="count">0</span> ช่อง</div>
           </div>
 
-          <div class="channels" id="channelsList" aria-live="polite" style="margin-top:10px">
-            <!-- channels appended here -->
-          </div>
+          <div class="channels" id="channels" aria-live="polite" style="margin-top:10px"></div>
         </section>
 
-        <aside class="card" style="display:flex;flex-direction:column;gap:10px">
-          <div>
+        <aside class="panel" style="width:520px;display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center">
             <strong>Player Preview</strong>
-            <div style="font-size:13px;color:var(--muted)">เล่น M3U / m3u8 (HLS) โดยใช้ hls.js if required</div>
+            <div style="font-size:13px;color:var(--muted)">HLS · HTTP · MP4</div>
           </div>
-          <div id="videoPlayerWrap" style="position:relative">
-            <video id="videoPlayer" controls playsinline></video>
-          </div>
+
+          <video id="video" controls playsinline></video>
 
           <div class="charts">
             <div id="chartGroups" style="flex:1"></div>
             <div id="chartProto" style="width:180px"></div>
           </div>
 
-          <div class="mermaid-card card" style="padding:10px;">
-            <strong>Pipeline</strong>
-            <div class="mermaid" id="mermaidDiagram" style="margin-top:8px">
-graph LR
-  User[ผู้ใช้] -->|โหลด M3U| Parser(Parses M3U)
-  Parser -->|รายการช่อง| UI[UI Listing]
-  UI -->|เล่น| Player[HLS/Native Player]
-  Player --> Metrics[(ECharts Analytics)]
+          <div class="mermaid-wrap">
+            <strong style="font-size:13px">Flow</strong>
+            <div class="mermaid" id="mermaid">
+flowchart LR
+  A[User] --> B[Load M3U URL / File]
+  B --> C{Parser}
+  C --> D[List UI]
+  D --> E[Player (HLS/native)]
+  E --> F[Metrics & Charts]
             </div>
           </div>
         </aside>
       </div>
 
-      <footer>© 2025 StreamCraft • พัฒนาโดยผู้เชี่ยวชาญ IPTV & Full‑Stack</footer>
+      <footer class="panel" style="text-align:center">© IPTV Studio — Built for web playback • Use responsibly</footer>
     </main>
   </div>
 
-  <script>
-    // Initialize mermaid (ES module loaded separately)
-    (async()=> {
-      try {
-        const mermaid = (await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs')).default;
-        mermaid.initialize({ startOnLoad: true, theme: 'dark', flowchart:{curve:'basis'} });
-      } catch(e){ console.warn('mermaid load error', e); }
-    })();
-  </script>
+<script>
+  mermaid.initialize({ startOnLoad:true, theme: 'dark', flowchart:{curve:'basis'} });
+  const $ = s => document.querySelector(s);
+  let channels = [], useProxy = false, hls = null;
+  const status = $('#status'), list = $('#channels'), countEl = $('#count'), proxyState = $('#proxyState');
 
-  <script>
-    // Utils
-    const $ = sel => document.querySelector(sel);
-    const status = $('#status');
-    const listEl = $('#channelsList');
-    const countEl = $('#count');
-    let channels = [];
-    let useProxy = false;
+  function setStatus(t, err=false){ status.textContent = t; status.style.color = err ? '#fb7185' : 'var(--muted)'; }
 
-    function setStatus(t, err=false){ status.textContent = 'สถานะ: ' + t; status.style.color = err ? '#fb7185' : 'var(--muted)'; }
+  function parseEXTINF(line){
+    const info = {title:'',tvg_id:'',tvg_name:'',tvg_logo:'',group:''};
+    const m = line.match(/^#EXTINF:[^-]*,(.*)$/i);
+    if(m) info.title = m[1].trim();
+    const attrRe = /([\w-]+)=["']([^"']*)["']/g;
+    let attrs = line.split('#EXTINF:')[1] || '';
+    let r; while((r=attrRe.exec(attrs))){ const k=r[1].toLowerCase(), v=r[2]; if(k.includes('tvg-id')) info.tvg_id=v; else if(k.includes('tvg-name')) info.tvg_name=v; else if(k.includes('tvg-logo')) info.tvg_logo=v; else if(k.includes('group-title')) info.group=v; else info[k]=v; }
+    return info;
+  }
 
-    // parse EXTINF lines into metadata
-    function parseEXTINF(line){
-      // example: #EXTINF:-1 tvg-id="id" tvg-name="name" tvg-logo="..." group-title="Group",Channel Title
-      const info = {title:'',tvg_id:'',tvg_name:'',tvg_logo:'',group:''};
-      const attrPart = line.split('#EXTINF:')[1] || '';
-      const parts = attrPart.split(',');
-      const attrs = parts.slice(0,-1).join(',') || parts[0] || '';
-      const title = parts.slice(-1).join(',').trim();
-      info.title = title || '';
-      // attributes regex
-      const re = /([\w-]+)=["']([^"']*)["']/g;
-      let m;
-      while((m = re.exec(attrs))){
-        const k = m[1];
-        const v = m[2];
-        if(k.toLowerCase().includes('tvg-id')) info.tvg_id = v;
-        else if(k.toLowerCase().includes('tvg-name')) info.tvg_name = v;
-        else if(k.toLowerCase().includes('tvg-logo')) info.tvg_logo = v;
-        else if(k.toLowerCase().includes('group-title')) info.group = v;
-        else info[k] = v;
-      }
-      return info;
+  function parseM3U(text){
+    const lines = text.split(/\r?\n/);
+    const out = []; let last = null;
+    for(let l of lines){ l = l.trim(); if(!l) continue;
+      if(l.startsWith('#EXTINF')) last = parseEXTINF(l);
+      else if(l.startsWith('#')) continue;
+      else { const item = last ? {...last} : {title:''}; item.url = l; if(!item.title) item.title = item['tvg-name'] || item.tvg_id || l.split('/').pop() || l; out.push(item); last = null; }
     }
+    return out;
+  }
 
-    function parseM3U(text){
-      const lines = text.split(/\r?\n/);
-      const items=[];
-      let lastInfo = null;
-      for(let raw of lines){
-        const line = raw.trim();
-        if(!line) continue;
-        if(line.startsWith('#EXTINF')){
-          lastInfo = parseEXTINF(line);
-        } else if(line.startsWith('#')) {
-          // ignore other comments
-        } else {
-          // URL line
-          const url = line;
-          const meta = lastInfo ? {...lastInfo} : {title:''};
-          meta.url = url;
-          if(!meta.title) {
-            // try to derive from url or tvg-name
-            meta.title = meta['tvg-name'] || meta.tvg_id || url.split('/').pop() || url;
-          }
-          items.push(meta);
-          lastInfo = null;
-        }
-      }
-      return items;
+  function render(){
+    list.innerHTML = ''; channels.forEach((c,i)=>{
+      const div = document.createElement('div'); div.className='ch';
+      const logo = c.tvg_logo || '';
+      div.innerHTML = `<div class="thumb">${logo ? `<img src="${escape(c.tvg_logo)}" alt="" style="max-width:100%;max-height:100%;border-radius:6px">` : chooseEmoji(c.group)}</div>
+        <div class="meta"><h4 title="${escape(c.title)}">${escape(c.title)}</h4><p>${escape(c.group||'Ungrouped')} • ID:${escape(c.tvg_id||'-')}</p><div style="font-size:12px;color:var(--muted);margin-top:6px">${shorten(c.url,70)}</div></div>
+        <div class="play-actions">
+          <button class="btn" onclick="play(${i})"><span class='mdi mdi-play'></span>&nbsp;เล่น</button>
+          <button class="btn ghost" onclick="window.open('${escapeUrlForAttr(c.url)}','_blank')" title="Open"><span class='mdi mdi-open-in-new'></span></button>
+        </div>`;
+      list.appendChild(div);
+    });
+    countEl.textContent = channels.length;
+    updateCharts();
+  }
+
+  function escape(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+  function escapeUrlForAttr(u){ return encodeURI(u).replace(/'/g,"%27"); }
+  function shorten(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s }
+  function chooseEmoji(g){ if(!g) return '📺'; g=g.toLowerCase(); if(g.includes('news')) return '📰'; if(g.includes('sport')) return '⚽'; if(g.includes('movie')) return '🎬'; if(g.includes('music')) return '🎵'; return '📺'; }
+
+  // Playback
+  function play(idx){
+    const item = channels[idx]; if(!item) return;
+    const video = $('#video'); const src = item.url;
+    if(hls){ try{ hls.destroy(); }catch(e){} hls=null; }
+    if(video.canPlayType('application/vnd.apple.mpegurl') || (src.toLowerCase().includes('.m3u8') && /Safari/.test(navigator.userAgent))){
+      video.src = src; video.play().catch(()=>{});
+    } else if(Hls.isSupported() && src.toLowerCase().includes('.m3u8')){
+      hls = new Hls(); hls.loadSource(src); hls.attachMedia(video); hls.on(Hls.Events.MANIFEST_PARSED, ()=>video.play().catch(()=>{}));
+    } else {
+      // try direct
+      video.src = src; video.play().catch(()=> window.open(src,'_blank'));
     }
+    setStatus('Playing: ' + item.title);
+  }
 
-    // UI functions
-    function renderChannels(arr){
-      channels = arr;
-      listEl.innerHTML = '';
-      arr.forEach((ch, idx) => {
-        const div = document.createElement('div');
-        div.className = 'ch';
-        const logo = ch.tvg_logo || '';
-        const emoji = chooseEmojiFromGroup(ch.group || ch.title);
-        div.innerHTML = `
-          <div class="thumb">${ logo ? `<img src="${escapeHtml(logo)}" alt="" style="max-width:100%;max-height:100%;border-radius:6px">` : emoji }</div>
-          <div class="meta">
-            <h4 title="${escapeHtml(ch.title)}">${escapeHtml(ch.title)}</h4>
-            <p>${escapeHtml(ch.group || 'No group')} • <span style="opacity:0.8">ID:${escapeHtml(ch.tvg_id||'-')}</span></p>
-            <div style="font-size:12px;color:var(--muted);margin-top:6px">${escapeHtml(shorten(ch.url, 70))}</div>
-          </div>
-          <div class="play-actions">
-            <button class="btn" data-idx="${idx}" onclick="playChannel(${idx})"><span class="mdi mdi-play"></span> เล่น</button>
-            <button class="btn ghost" onclick="openStream(${idx})" style="background:transparent;border:1px solid rgba(255,255,255,0.03)"><span class="mdi mdi-open-in-new"></span></button>
-          </div>
-        `;
-        listEl.appendChild(div);
-      });
-      countEl.textContent = arr.length;
-      updateCharts();
-    }
+  // Fetch / Upload
+  $('#fetchBtn').addEventListener('click', async ()=>{
+    const url = $('#urlInput').value.trim(); if(!url){ setStatus('Please enter a URL',true); return; }
+    setStatus('Downloading...');
+    try{
+      const target = useProxy ? proxy(url) : url;
+      const r = await fetch(target); if(!r.ok) throw new Error('HTTP '+r.status);
+      const t = await r.text(); const parsed = parseM3U(t);
+      if(parsed.length===0) setStatus('No channels found', true); else { channels = parsed; render(); setStatus('Loaded '+parsed.length+' channels'); }
+    }catch(e){ setStatus('Load failed: ' + e.message, true); }
+  });
 
-    // small helpers
-    function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    function shorten(s,n){ return s.length>n ? s.slice(0,n-1)+'…' : s }
-    function chooseEmojiFromGroup(g){
-      if(!g) return '📺';
-      g = g.toLowerCase();
-      if(g.includes('news')) return '📰';
-      if(g.includes('sport')) return '⚽';
-      if(g.includes('movie')||g.includes('film')) return '🎬';
-      if(g.includes('music')) return '🎵';
-      if(g.includes('kids')) return '🧸';
-      if(g.includes('doc')) return '📚';
-      return '📺';
-    }
+  $('#uploadBtn').addEventListener('click', ()=> $('#fileInput').click());
+  $('#fileInput').addEventListener('change', async e=>{
+    const f = e.target.files[0]; if(!f) return; setStatus('Reading file...');
+    try{ const t = await f.text(); const parsed = parseM3U(t); channels = parsed; render(); setStatus('Loaded '+parsed.length+' channels'); }catch(err){ setStatus('File read error', true); }
+  });
 
-    // play logic with hls.js fallback
-    let hlsInstance = null;
-    window.playChannel = function(idx){
-      const ch = channels[idx];
-      if(!ch) return;
-      const video = document.getElementById('videoPlayer');
-      const src = ch.url;
-      // stop previous
-      if(hlsInstance){ hlsInstance.destroy(); hlsInstance = null; }
-      if(video.canPlayType('application/vnd.apple.mpegurl') || src.toLowerCase().includes('.m3u8') && /Safari/.test(navigator.userAgent)){
-        video.src = src;
-        video.play().catch(()=>{});
-      } else if(Hls.isSupported() && src.toLowerCase().includes('.m3u8')){
-        hlsInstance = new Hls();
-        hlsInstance.loadSource(src);
-        hlsInstance.attachMedia(video);
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, function() { video.play().catch(()=>{}); });
-      } else {
-        // non-HLS stream (http/rtmp) just open in new tab
-        window.open(src, '_blank');
-      }
-      setStatus('กำลังเล่น: ' + ch.title);
-    };
+  // Proxy toggle
+  $('#proxyBtn').addEventListener('click', ()=>{ useProxy = !useProxy; proxyState.textContent = useProxy ? 'ON' : 'OFF'; $('#proxyBtn').style.opacity = useProxy ? 1 : 0.9; });
+  function proxy(u){ return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); }
 
-    window.openStream = function(idx){
-      const ch = channels[idx];
-      if(!ch) return;
-      window.open(ch.url,'_blank');
-    };
+  // Export / Copy / Clean
+  $('#exportJson').addEventListener('click', ()=>{ if(!channels.length){ setStatus('No data',true); return; } download('channels.json', JSON.stringify(channels,null,2)); setStatus('Downloaded JSON'); });
+  $('#copyJson').addEventListener('click', async ()=>{ if(!channels.length){ setStatus('No data',true); return; } try{ await navigator.clipboard.writeText(JSON.stringify(channels,null,2)); setStatus('Copied JSON to clipboard'); }catch(e){ setStatus('Copy failed',true); }});
+  $('#downloadClean').addEventListener('click', ()=>{ if(!channels.length){ setStatus('No data',true); return; } let out='#EXTM3U\n'; channels.forEach(c=>{ const attrs=[]; if(c.tvg_id) attrs.push(`tvg-id="${c.tvg_id}"`); if(c.tvg_name) attrs.push(`tvg-name="${c.tvg_name}"`); if(c.tvg_logo) attrs.push(`tvg-logo="${c.tvg_logo}"`); if(c.group) attrs.push(`group-title="${c.group}"`); out+=`#EXTINF:-1 ${attrs.join(' ')} ,${c.title}\n${c.url}\n`; }); download('clean.m3u', out); setStatus('Downloaded cleaned M3U'); });
 
-    // fetch M3U from URL or file
-    $('#fetchBtn').addEventListener('click', async () => {
-      const url = $('#m3uUrl').value.trim();
-      if(!url){ setStatus('โปรดใส่ URL',true); return; }
-      setStatus('กำลังดาวน์โหลด...');
-      try {
-        const target = useProxy ? proxyUrl(url) : url;
-        const res = await fetch(target);
-        if(!res.ok) throw new Error('HTTP ' + res.status);
-        const txt = await res.text();
-        const parsed = parseM3U(txt);
-        if(parsed.length===0) setStatus('ไม่พบรายการช่องในไฟล์', true);
-        else { setStatus('โหลดสำเร็จ ('+parsed.length+' ช่อง)'); renderChannels(parsed); }
-      } catch(err){
-        setStatus('ไม่สามารถโหลดได้: '+err.message, true);
-      }
-    });
+  function download(name, text){ const b = new Blob([text], {type:'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
 
-    // proxy utility
-    function proxyUrl(url){
-      // user-visible example proxies; here we use allorigins as default (public)
-      // Note: for heavy/production use, provide your own proxy.
-      return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    }
+  // Charts
+  const chartGroups = echarts.init(document.getElementById('chartGroups'));
+  const chartProto = echarts.init(document.getElementById('chartProto'));
+  function updateCharts(){
+    const groups={}, proto={};
+    channels.forEach(c=>{ const g=c.group||'Ungrouped'; groups[g]=(groups[g]||0)+1; const p=(c.url||'').split(':')[0]||'other'; proto[p]=(proto[p]||0)+1; });
+    const gdata = Object.keys(groups).map(k=>({name:k,value:groups[k]}));
+    const pdata = Object.keys(proto).map(k=>({name:k,value:proto[k]}));
+    chartGroups.setOption({ title:{text:'Groups',left:8,textStyle:{color:'#e6eef6',fontSize:13}}, tooltip:{}, series:[{type:'pie',radius:['40%','70%'],data:gdata,label:{color:'#cfeafe',formatter:'{b}\\n{d}%'}}]});
+    chartProto.setOption({ title:{text:'Protocols',left:'center',textStyle:{color:'#e6eef6',fontSize:12}}, tooltip:{}, xAxis:{type:'category',data:pdata.map(d=>d.name),axisLine:{show:false}}, yAxis:{type:'value',axisLine:{show:false},splitLine:{show:false}}, series:[{type:'bar',data:pdata.map(d=>d.value),itemStyle:{color:'#2dd4bf'}}]});
+  }
 
-    // toggle proxy
-    $('#useProxyBtn').addEventListener('click', ()=>{
-      useProxy = !useProxy;
-      $('#useProxyBtn').textContent = useProxy ? 'Proxy: ON' : 'ใช้ CORS proxy';
-      $('#useProxyBtn').style.background = useProxy ? 'linear-gradient(90deg,var(--accent2),var(--accent1))' : '';
-    });
-
-    // upload file
-    $('#uploadBtn').addEventListener('click', ()=> $('#fileInput').click());
-    $('#fileInput').addEventListener('change', async (e) => {
-      const f = e.target.files[0];
-      if(!f) return;
-      setStatus('อ่านไฟล์ local...');
-      const txt = await f.text();
-      const parsed = parseM3U(txt);
-      if(parsed.length===0) setStatus('ไฟล์ไม่มีรายการช่อง', true);
-      else { setStatus('โหลดสำเร็จ ('+parsed.length+' ช่อง)'); renderChannels(parsed); }
-    });
-
-    // export JSON / copy / clean M3U
-    $('#exportJsonBtn').addEventListener('click', ()=>{
-      if(!channels.length){ setStatus('ไม่มีข้อมูลให้ดาวน์โหลด',true); return; }
-      const blob = new Blob([JSON.stringify(channels, null, 2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'channels.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-
-    $('#copyBtn').addEventListener('click', async ()=>{
-      if(!channels.length){ setStatus('ไม่มีข้อมูลให้คัดลอก',true); return; }
-      try {
-        await navigator.clipboard.writeText(JSON.stringify(channels, null, 2));
-        setStatus('คัดลอก JSON ไปยังคลิปบอร์ดแล้ว');
-      } catch(e){ setStatus('ไม่สามารถคัดลอก: '+e.message, true); }
-    });
-
-    $('#cleanM3UBtn').addEventListener('click', ()=>{
-      if(!channels.length){ setStatus('ไม่มีข้อมูลให้ดาวน์โหลด',true); return; }
-      let out = '#EXTM3U\n';
-      channels.forEach(ch=>{
-        // build simple EXTINF
-        const attrs = [];
-        if(ch.tvg_id) attrs.push(`tvg-id="${ch.tvg_id}"`);
-        if(ch.tvg_name) attrs.push(`tvg-name="${ch.tvg_name}"`);
-        if(ch.tvg_logo) attrs.push(`tvg-logo="${ch.tvg_logo}"`);
-        if(ch.group) attrs.push(`group-title="${ch.group}"`);
-        out += `#EXTINF:-1 ${attrs.join(' ')} ,${ch.title}\n${ch.url}\n`;
-      });
-      const blob = new Blob([out], {type:'application/x-mpegURL'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'cleaned.m3u';
-      a.click();
-      URL.revokeObjectURL(a.href);
-      setStatus('ดาวน์โหลด M3U สำเร็จ');
-    });
-
-    // basic charts via ECharts
-    const chartGroups = echarts.init(document.getElementById('chartGroups'));
-    const chartProto = echarts.init(document.getElementById('chartProto'));
-
-    function updateCharts(){
-      // groups
-      const groups = {};
-      const proto = {};
-      channels.forEach(c=>{
-        const g = c.group || 'Ungrouped';
-        groups[g] = (groups[g]||0)+1;
-        const p = (c.url||'').split(':')[0] || 'other';
-        proto[p] = (proto[p]||0)+1;
-      });
-      const gdata = Object.keys(groups).map(k=>({name:k,value:groups[k]}));
-      const pdata = Object.keys(proto).map(k=>({name:k,value:proto[k]}));
-
-      chartGroups.setOption({
-        title:{text:'กลุ่มช่อง',left:8,textStyle:{color:'#e6eef6',fontSize:13}},
-        tooltip:{},
-        series:[{
-          type:'pie',radius:['40%','70%'],data:gdata, label:{color:'#cfeafe',formatter:'{b}\n{d}%'}
-        }]
-      });
-
-      chartProto.setOption({
-        title:{text:'protocol',left:'center',textStyle:{color:'#e6eef6',fontSize:12}},
-        tooltip:{},
-        xAxis:{type:'category',data:pdata.map(d=>d.name),axisLine:{show:false}},
-        yAxis:{type:'value',axisLine:{show:false},splitLine:{show:false}},
-        series:[{type:'bar',data:pdata.map(d=>d.value),itemStyle:{color:'#2dd4bf'}}]
-      });
-    }
-
-    // small demo: parse sample if none loaded
-    const sample = `#EXTM3U
+  // small sample to start
+  const sample = `#EXTM3U
 #EXTINF:-1 tvg-id="101" tvg-name="MovieOne HD" tvg-logo="" group-title="Entertainment",MovieOne HD
-http://example.com/stream/movieone.m3u8
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 #EXTINF:-1 tvg-id="204" tvg-name="NewsLive" tvg-logo="" group-title="News",NewsLive
-http://example.com/stream/newslive.m3u8
-#EXTINF:-1 tvg-id="305" tvg-name="Sports Arena" tvg-logo="" group-title="Sports",Sports Arena
-http://example.com/stream/sports.m3u8
+https://test-streams.mux.dev/test_001/stream.m3u8
+#EXTINF:-1 tvg-id="305" tvg-name="Sports Arena" group-title="Sports",Sports Arena
+https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8
 `;
-    renderChannels(parseM3U(sample));
-    setStatus('พร้อม — ตัวอย่างถูกโหลด (ทดสอบ)');
-  </script>
+  channels = parseM3U(sample); render(); setStatus('Sample loaded — ready');
+
+  // responsive charts resize
+  window.addEventListener('resize', ()=>{ chartGroups.resize(); chartProto.resize(); });
+
+</script>
 </body>
-</html>
+</html
