@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Viewer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+        * { box-sizing: border-box; }
+        body {
+            background: #f0f2f5;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            display: flex; justify-content: center; padding: 30px 15px; min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            max-width: 720px;
+            width: 100%;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        h1 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+            color: #222;
+            text-align: center;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #444;
+            display: block;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1.8px solid #ccc;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            margin: 10px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 6px rgba(79, 70, 229, 0.4);
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.35);
+            min-width: 120px;
+        }
+        #btnFetch {
+            background-color: #4f46e5;
+            color: white;
+        }
+        #btnFetch:hover,
+        #btnFetch:focus {
+            background-color: #4338ca;
+            box-shadow: 0 8px 20px rgba(67, 56, 202, 0.5);
+            outline: none;
+        }
+        #btnClear {
+            background-color: #e02424;
+            color: white;            
+            box-shadow: 0 6px 12px rgba(224, 36, 36, 0.5);
+        }
+        #btnClear:hover,
+        #btnClear:focus {
+            background-color: #b71b1b;
+            box-shadow: 0 8px 20px rgba(183, 27, 27, 0.6);
+            outline: none;
+        }
+        #result {
+            background-color: #1e1e2f;
+            color: #d4d4fc;
+            font-family: 'Source Code Pro', monospace, monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            min-height: 300px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+        }
+        .error {
+            color: #e02424;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: #ffe2e2;
+            border: 1.5px solid #e02424;
+            text-align: center;
+            margin-top: -10px;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 20px;
+            }
+            button {
+                font-size: 1rem;
+                padding: 12px 16px;
+                min-width: 100px;
+            }
+            .btn-group {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" role="main">
+        <h1>API Viewer</h1>
+        <form id="apiForm" autocomplete="off" aria-label="Form for inputting API URL with credentials">
+            <label for="fullUrl">API URL with username &amp; password (e.g. <code>http://xxxx.xxx:8080/player_api.php?username=xxx&amp;password=yyy</code>):</label>
+            <input type="text" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx" required aria-required="true" />
+            <div class="btn-group">
+                <button type="submit" id="btnFetch">Get Info</button>
+                <button type="button" id="btnClear">Clear</button>
+            </div>
+        </form>
+
+        <div class="error" id="error" role="alert" aria-live="polite" style="display:none;"></div>
+
+        <pre id="result" aria-live="polite" aria-label="API response output"></pre>
+    </div>
+
+    <script>
+        function convertTimestamp(ts) {
+            const t = parseInt(ts);
+            if (isNaN(t)) return ts;
+            const d = new Date(t * 1000);
+            return d.toISOString().replace('T', ' ').substr(0, 19);
+        }
+
+        const form = document.getElementById('apiForm');
+        const resultElem = document.getElementById('result');
+        const errorElem = document.getElementById('error');
+        const btnClear = document.getElementById('btnClear');
+        const inputUrl = document.getElementById('fullUrl');
+
+        function getQueryParam(param) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(param);
+        }
+
+        // รับค่า url หรือ u เป็น shortcut
+        const prefillUrl = getQueryParam('url') || getQueryParam('u');
+        if (prefillUrl) {
+            try {
+                // ถ้าพารามิเตอร์ถูก encode มา ให้ decode ก่อน
+                inputUrl.value = decodeURIComponent(prefillUrl);
+            } catch (e) {
+                inputUrl.value = prefillUrl;
+            }
+        }
+
+        // ฟังก์ชันแก้ path "get.php" เป็น "player_api.php"
+        function fixApiPath(urlObj) {
+            if (urlObj.pathname.endsWith("get.php")) {
+                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+            }
+            return urlObj;
+        }
+
+        // ฟังก์ชันที่ทำการ fetch จริง ๆ (สามารถเรียกได้จากอีเวนต์ต่าง ๆ)
+        function fetchApiFromUrlString(fullUrl) {
+            clearError();
+            if (!fullUrl) {
+                showError('กรุณากรอก URL');
+                return;
+            }
+
+            let urlObj;
+            try {
+                urlObj = new URL(fullUrl);
+            } catch (err) {
+                showError('URL ไม่ถูกต้อง');
+                resultElem.textContent = '';
+                return;
+            }
+
+            // เปลี่ยน get.php เป็น player_api.php
+            urlObj = fixApiPath(urlObj);
+
+            // ลบพารามิเตอร์ type และ output ออกก่อนใช้ fetch
+            urlObj.searchParams.delete('type');
+            urlObj.searchParams.delete('output');
+
+            let username = urlObj.searchParams.get('username');
+            let password = urlObj.searchParams.get('password');
+
+            if (!username || !password) {
+                showError('กรุณาใส่ username และ password ใน URL');
+                resultElem.textContent = '';
+                return;
+            }
+
+            if (!urlObj.searchParams.get('action')) {
+                urlObj.searchParams.set('action', 'get_info');
+            }
+
+            // ใช้ cors-anywhere proxy โดยตรงกับ URL ที่แก้ไขแล้ว
+            // สามารถปรับเป็น encodeURIComponent(urlObj.toString()) ได้ถ้าต้องการ
+            const proxyUrl = `https://cors-anywhere.com/${urlObj.toString()}`;
+
+            resultElem.textContent = 'Loading...';
+
+            fetch(proxyUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'  // บางครั้ง CORS Anywhere ต้อง header นี้
+                }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+                    // บาง API อาจคืนค่าที่ไม่ใช่ JSON — ถ้าเป็นกรณีนี้ อาจต้องปรับ
+                    return response.json();
+                })
+                .then(jsonData => {
+                    // แปลง timestamp เป็นรูปแบบ readable
+                    if (jsonData.user_info) {
+                        jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
+                        jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
+                    }
+                    if (jsonData.server_info) {
+                        jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
+                    }
+
+                    resultElem.textContent = JSON.stringify(jsonData, null, 4);
+                })
+                .catch(err => {
+                    showError('เกิดข้อผิดพลาด: ' + err.message);
+                    resultElem.textContent = '';
+                });
+        }
+
+        form.addEventListener('submit', event => {
+            event.preventDefault();
+            const fullUrl = inputUrl.value.trim();
+            fetchApiFromUrlString(fullUrl);
+        });
+
+        btnClear.addEventListener('click', () => {
+            inputUrl.value = '';
+            clearError();
+            resultElem.textContent = '';
+            inputUrl.focus();
+        });
+
+        function showError(msg) {
+            errorElem.style.display = 'block';
+            errorElem.textContent = msg;
+        }
+
+        function clearError() {
+            errorElem.style.display = 'none';
+            errorElem.textContent = '';
+        }
+
+        // ถ้ามีค่า prefillUrl ให้เรียก fetch อัตโนมัติหลังโหลด
+        if (prefillUrl) {
+            // เล็กน้อยหน่วงเวลาให้ DOM พร้อม (และให้ผู้ใช้เห็น input ถูกเติม)
+            setTimeout(() => {
+                // เรียกฟังก์ชัน fetch โดยตรง (แทนการ dispatch event) เพื่อให้พฤติกรรมชัดเจน
+                fetchApiFromUrlString(inputUrl.value.trim());
+            }, 200);
+        }
+    </script>
+</body>
+</html>
