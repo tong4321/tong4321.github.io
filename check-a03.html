@@ -1,114 +1,90 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>API Viewer — Pro UX (Dark mode, Chart, Mermaid)</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Viewer — Improved UI/UX (wide)</title>
     <style>
+        /* Core layout */
         :root{
             --bg:#eef2ff;
             --card:#ffffff;
             --accent:#4f46e5;
-            --accent-600:#4338ca;
             --danger:#e02424;
             --muted:#6b7280;
             --mono:'Source Code Pro', monospace;
-            --glass: rgba(15,23,42,0.04);
-            --success:#10b981;
         }
-        /* Dark theme variables */
-        body.dark{
-            --bg:#0b1220;
-            --card:#0f1724;
-            --accent:#7c3aed;
-            --accent-600:#6d28d9;
-            --danger:#f87171;
-            --muted:#9aa4b2;
-            --glass: rgba(255,255,255,0.03);
-            --success:#34d399;
-        }
-
         *{box-sizing:border-box}
-        html,body{height:100%}
         body{
             margin:0;
             font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-            background: linear-gradient(180deg,var(--bg) 0%, #f7fafc 100%);
+            background: linear-gradient(180deg, var(--bg) 0%, #f7fafc 100%);
             display:flex;
             justify-content:center;
             align-items:flex-start;
-            padding:28px;
+            padding:36px;
             min-height:100vh;
-            color: #0f172a;
-            transition:background 220ms ease,color 180ms ease;
         }
-        body.dark{color:#e6eef8;background: linear-gradient(180deg,var(--bg) 0%, #081021 100%);}
-
         .wrap{
-            width:100%;
-            max-width:1200px;
+            width:90%; /* changed to 90% of viewport width */
+            max-width:none; /* allow 90% to take effect */
             background:var(--card);
             border-radius:14px;
-            padding:18px;
+            padding:28px;
             box-shadow: 0 18px 40px rgba(15,23,42,0.12);
             display:grid;
-            grid-template-columns: 420px 1fr;
-            gap:18px;
+            grid-template-columns: 1fr 560px; /* wider output column */
+            gap:22px;
             align-items:start;
-            min-height:600px;
-            transition:background 200ms ease,color 200ms ease;
         }
-        @media (max-width:1100px){ .wrap{grid-template-columns:1fr; padding:12px} }
+        h1{margin:0;font-size:1.45rem;color:#0f172a;font-weight:800}
+        p.lead{margin:8px 0 16px;color:var(--muted);font-size:1rem;line-height:1.35}
 
-        h1{margin:0;font-size:1.45rem;color:inherit;font-weight:800}
-        p.lead{margin:8px 0 14px;color:var(--muted);font-size:0.95rem;line-height:1.35}
-
-        /* Left column */
-        .panel{padding:14px;border-radius:12px;background:linear-gradient(180deg,rgba(79,70,229,0.02),transparent);}
-        label{display:block;font-weight:700;margin-bottom:8px;color:inherit}
-        input[type="text"], select, textarea{
+        /* Left column (controls) */
+        .panel{padding:16px;border-radius:12px;background:linear-gradient(180deg,rgba(79,70,229,0.03),transparent);}
+        label{display:block;font-weight:700;margin-bottom:8px;color:#111827}
+        input[type="text"], select{
             width:100%;
-            padding:10px 12px;
+            padding:12px 14px;
             border-radius:10px;
-            border:1.5px solid rgba(0,0,0,0.06);
-            font-size:0.95rem;
-            background:transparent;
-            color:inherit;
+            border:1.5px solid #e6e7ee;
+            font-size:1rem;
         }
-        body.dark input[type="text"], body.dark select, body.dark textarea{
-            border-color: rgba(255,255,255,0.06);
-        }
-        input[type="text"]:focus, select:focus, textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 10px 28px rgba(79,70,229,0.06)}
-        .small{font-size:0.9rem;color:var(--muted)}
+        input[type="text"]:focus, select:focus{outline:none;border-color:var(--accent);box-shadow:0 8px 28px rgba(79,70,229,0.08)}
+        .row{display:flex;gap:10px}
+        .small{font-size:0.95rem;color:var(--muted)}
 
-        .row{display:flex;gap:8px}
-        .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-        button{border:none;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;font-size:0.9rem;background:transparent}
-        .btn-primary{background:var(--accent);color:white;box-shadow:0 8px 20px rgba(79,70,229,0.12)}
-        .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:inherit}
-        body.dark .btn-ghost{border-color: rgba(255,255,255,0.06)}
+        .controls{
+            display:flex;
+            gap:12px;
+            margin-top:14px;
+            flex-wrap:wrap;
+        }
+        button{
+            border:none;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;font-size:0.95rem;
+        }
+        .btn-primary{background:var(--accent);color:white;box-shadow:0 10px 26px rgba(79,70,229,0.16)}
+        .btn-ghost{background:transparent;border:1px solid #e6e7ee;color:#111827}
         .btn-danger{background:var(--danger);color:white}
-        .btn-icon{display:inline-flex;gap:8px;padding:8px 10px;align-items:center}
+        .btn-icon{display:inline-flex;align-items:center;gap:8px;padding:10px 12px}
 
-        .meta{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-        .tag{background:var(--glass);padding:8px 12px;border-radius:999px;font-size:0.85rem;color:var(--muted);border:1px solid rgba(0,0,0,0.03)}
+        .meta{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+        .tag{background:#f8fafc;padding:8px 12px;border-radius:999px;font-size:0.9rem;color:#374151;border:1px solid #eef2ff}
 
-        .presets, .history{margin-top:12px}
-        .list {max-height:220px;overflow:auto;padding:8px;border-radius:10px;background:transparent;border:1px dashed rgba(0,0,0,0.04)}
-        body.dark .list {border-color: rgba(255,255,255,0.04)}
-        .list button{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;background:transparent;border:none;color:inherit;font-weight:700}
-        .list .metaRow{font-size:0.82rem;color:var(--muted);margin-top:4px}
-        .list button:hover{background:rgba(79,70,229,0.04)}
+        .presets, .history{margin-top:14px}
+        .list {max-height:220px;overflow:auto;padding:10px;border-radius:10px;background:#fff;border:1px dashed #eef2ff}
+        .list button{display:block;width:100%;text-align:left;padding:10px;border-radius:8px;background:transparent;border:none;color:#0f172a;font-weight:600}
+        .list button:hover{background:#f8fafc}
 
-        /* Right column output */
+        /* Right column (output) */
         .output-wrap{display:flex;flex-direction:column;gap:12px}
         .toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between}
-        .status{padding:6px 10px;border-radius:999px;background:var(--glass);color:inherit;font-weight:700;font-size:0.92rem}
+        .toolbar-left{display:flex;gap:12px;align-items:center}
+        .status{padding:8px 12px;border-radius:999px;background:#f3f4f6;color:#111827;font-weight:700;font-size:0.95rem}
         .result{
-            background: #0f1724;color:#e6eef8;border-radius:10px;padding:12px;
-            font-family:var(--mono);font-size:0.95rem;min-height:240px;overflow:auto;white-space:pre-wrap;line-height:1.45;
+            background:#0f172a;color:#e6eef8;border-radius:12px;padding:18px;
+            font-family:var(--mono);font-size:0.98rem;min-height:420px;overflow:auto;white-space:pre-wrap;line-height:1.45;
         }
-        body:not(.dark) .result{background:#0f172a;color:#e6eef8}
 
         .error{
             color:var(--danger);
@@ -119,49 +95,33 @@
 
         .note{font-size:0.95rem;color:var(--muted)}
 
-        /* chart */
-        .chartCard{padding:12px;border-radius:10px;background:var(--glass);display:flex;gap:12px;align-items:center}
-        canvas{width:100%;height:140px;border-radius:8px;background:transparent}
-
-        /* mermaid area */
-        .mermaidWrap{display:flex;gap:8px;align-items:flex-start}
-        .mermaidRenderer{flex:1;padding:10px;border-radius:8px;background:var(--glass);min-height:140px;overflow:auto}
-
-        /* dark-mode toggle */
-        .toggle{
-            display:inline-flex;align-items:center;gap:8px;padding:6px 8px;border-radius:999px;background:var(--glass);
+        /* spinner */
+        .spinner{
+            width:22px;height:22px;border-radius:50%;border:3px solid rgba(255,255,255,0.18);border-top:3px solid white;
+            animation:spin 1s linear infinite;display:inline-block;margin-left:8px;
         }
-
-        /* simple toast */
-        .toast{position:fixed;right:24px;bottom:24px;background:rgba(0,0,0,0.8);color:white;padding:10px 14px;border-radius:8px;z-index:60;display:none}
-        .toast.show{display:block;animation:slide 360ms ease}
-        @keyframes slide{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
-
-        /* helper small */
-        .muted{color:var(--muted);font-size:0.9rem}
+        @keyframes spin{to{transform:rotate(360deg)}}
 
         /* responsive */
-        @media (max-width:820px){
-            .wrap{grid-template-columns:1fr}
-            .chartCard{flex-direction:column;align-items:stretch}
+        @media (max-width:1100px){
+            .wrap{grid-template-columns:1fr; padding:18px}
+            .result{min-height:320px}
+            .panel{padding:12px}
+        }
+
+        @media (max-width:520px){
+            .controls{gap:8px}
+            button{padding:10px 12px;font-size:0.92rem}
+            input[type="text"], select{padding:10px}
+            .list{max-height:180px}
         }
     </style>
 </head>
 <body>
-    <div class="wrap" role="main" aria-label="API Viewer Pro UX">
+    <div class="wrap" role="main" aria-label="API Viewer improved UI">
         <div class="panel" aria-labelledby="title-controls">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                <div>
-                    <h1 id="title-controls">API Viewer — Pro</h1>
-                    <p class="lead">ป้อน URL ที่มี username/password (ตัวอย่าง: http://host/player_api.php?username=xxx&password=yyy). มี presets, history, chart และ mermaid flow</p>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-                    <div class="toggle" id="darkToggle" title="Toggle dark mode" role="button" tabindex="0" aria-pressed="false">
-                        <span id="darkIcon">🌙</span><small class="muted" id="darkLabel">Dark</small>
-                    </div>
-                    <div class="toggle" title="Proxy info"><small class="muted">Proxy: <strong id="proxyName">cors-anywhere.com</strong></small></div>
-                </div>
-            </div>
+            <h1 id="title-controls">API Viewer</h1>
+            <p class="lead">ป้อน URL แบบมี username และ password (เช่น http://.../player_api.php?username=xxx&password=yyy). เพิ่มตัวอย่างและประวัติการเรียกเพื่อความสะดวก</p>
 
             <form id="apiForm" autocomplete="off" aria-label="Form for API URL with credentials">
                 <label for="fullUrl">API URL (รวม username & password):</label>
@@ -175,7 +135,7 @@
                 <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
                     <label style="margin:0;font-weight:700">Action:</label>
                     <select id="actionSelect" aria-label="Choose API action">
-                        <option value="">(default: get_info)</option>
+                        <option value="">(use default: get_info)</option>
                         <option value="get_info">get_info</option>
                         <option value="get_simple_info">get_simple_info</option>
                         <option value="get_live_streams">get_live_streams</option>
@@ -190,12 +150,6 @@
                     <button id="btnToggleProxy" type="button" class="btn-ghost btn-icon" aria-label="Toggle proxy usage">Toggle Proxy</button>
                 </div>
             </form>
-
-            <div style="display:flex;gap:8px;margin-top:10px">
-                <input type="text" id="presetFilter" placeholder="ค้นหา presets..." style="flex:1" />
-                <button id="btnImportPresets" class="btn-ghost" title="Import presets">Import</button>
-                <button id="btnExportPresets" class="btn-ghost" title="Export presets">Export</button>
-            </div>
 
             <div class="presets">
                 <label style="margin-bottom:6px">Presets / Examples:</label>
@@ -216,15 +170,13 @@
             </div>
         </div>
 
-        <div class="output-wrap">
+        <div class="output-wrap" aria-live="polite">
             <div class="panel" style="padding:12px;">
                 <div class="toolbar">
-                    <div style="display:flex;align-items:center;gap:12px">
+                    <div class="toolbar-left">
                         <div id="status" class="status">Ready</div>
                         <div id="httpStatus" style="margin-left:8px;color:var(--muted);font-weight:700"></div>
-                        <div id="lastInfo" class="muted" style="margin-left:12px">--</div>
                     </div>
-
                     <div style="display:flex;gap:8px;align-items:center">
                         <button id="btnPretty" class="btn-ghost" title="Pretty / Raw view">Pretty</button>
                         <button id="btnCopy" class="btn-ghost" title="Copy response">Copy</button>
@@ -238,208 +190,133 @@
                 <pre id="result" class="result" aria-label="API response output" tabindex="0"></pre>
             </div>
 
-            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
-                <div style="flex:1;min-width:320px">
-                    <div class="panel chartCard">
-                        <div style="flex:1">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-                                <strong>Request stats</strong>
-                                <div style="display:flex;gap:8px;align-items:center">
-                                    <small class="muted">last <span id="chartCount">0</span></small>
-                                    <button id="btnClearStats" class="btn-ghost" title="Clear stats">Clear</button>
-                                </div>
-                            </div>
-                            <canvas id="chartCanvas" width="640" height="140" aria-label="Response time chart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="panel" style="margin-top:10px;padding:10px">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                            <strong>Mermaid flow (simple)</strong>
-                            <div style="display:flex;gap:6px">
-                                <button id="btnRenderMermaid" class="btn-ghost">Render</button>
-                                <button id="btnCopySVG" class="btn-ghost">Copy SVG</button>
-                            </div>
-                        </div>
-                        <div class="mermaidWrap">
-                            <textarea id="mermaidInput" placeholder="ตัวอย่าง:
-graph LR
-A[Client] --> B[Proxy]
-B --> C[API]" style="width:56%;min-height:140px"></textarea>
-                            <div class="mermaidRenderer" id="mermaidOutput" aria-live="polite">
-                                <!-- svg rendered here -->
-                            </div>
-                        </div>
-                        <div class="muted" style="margin-top:8px">รองรับ subset ของ Mermaid: graph LR/TD และ <code>A[Label] --> B</code></div>
-                    </div>
-                </div>
-
-                <div style="width:360px;min-width:260px">
-                    <div class="panel" style="padding:10px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center">
-                            <strong>Tools</strong>
-                            <div style="display:flex;gap:6px">
-                                <button id="btnClearHistory" class="btn-ghost" title="Clear history">Clear History</button>
-                                <button id="btnResetPresets" class="btn-ghost" title="Reset presets">Reset Presets</button>
-                            </div>
-                        </div>
-
-                        <div style="margin-top:8px">
-                            <label style="font-weight:700">Presets JSON (import/export):</label>
-                            <textarea id="presetJson" style="height:120px" placeholder='[{"name":"ex","url":"http://..."}]'></textarea>
-                        </div>
-                    </div>
-
-                    <div class="panel" style="margin-top:10px;padding:10px">
-                        <strong>Quick actions</strong>
-                        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-                            <button id="btnExportHistory" class="btn-ghost">Export History JSON</button>
-                            <button id="btnOpenResult" class="btn-ghost">Open Response in New Tab</button>
-                        </div>
-                    </div>
+            <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:8px">
+                <div class="note" id="lastInfo">--</div>
+                <div>
+                    <button id="btnClearHistory" class="btn-ghost" title="Clear history">Clear History</button>
+                    <button id="btnResetPresets" class="btn-ghost" title="Reset presets">Reset Presets</button>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
     <script>
-        /* -------------------------
-           Constants & LocalStorage keys
-           ------------------------- */
-        const PROXY_BASE = 'https://cors-anywhere.com/';
-        const LS_HISTORY = 'apiViewer_history_v2';
-        const LS_PRESETS = 'apiViewer_presets_v2';
-        const LS_LASTURL = 'apiViewer_lasturl_v2';
-        const LS_STATS = 'apiViewer_stats_v1';
-        const LS_UI = 'apiViewer_ui_v1';
-        const MAX_HISTORY = 40;
-        const MAX_STATS = 60; // keep last N stats for chart
+        /* --- Existing logic preserved + UI enhancements --- */
 
-        /* -------------------------
-           DOM refs
-           ------------------------- */
+        // Helpers (unchanged logic preserved)
+        function convertTimestamp(ts) {
+            const t = parseInt(ts);
+            if (isNaN(t)) return ts;
+            const d = new Date(t * 1000);
+            return d.toISOString().replace('T', ' ').substr(0, 19);
+        }
+
+        function fixApiPath(urlObj) {
+            if(urlObj.pathname.endsWith("get.php")){
+                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+            }
+            return urlObj;
+        }
+
+        // DOM
         const form = document.getElementById('apiForm');
-        const inputUrl = document.getElementById('fullUrl');
-        const actionSelect = document.getElementById('actionSelect');
-        const btnFetch = document.getElementById('btnFetch');
+        const resultElem = document.getElementById('result');
+        const errorElem = document.getElementById('error');
         const btnClear = document.getElementById('btnClear');
+        const inputUrl = document.getElementById('fullUrl');
+
+        const btnFetch = document.getElementById('btnFetch');
         const btnCopy = document.getElementById('btnCopy');
         const btnCopyUrl = document.getElementById('btnCopyUrl');
-        const btnSavePreset = document.getElementById('btnSavePreset');
-        const btnToggleProxy = document.getElementById('btnToggleProxy');
-        const proxyTag = document.getElementById('proxyTag');
-        const proxyName = document.getElementById('proxyName');
-        const rateTag = document.getElementById('rateTag');
+        const btnDownload = document.getElementById('btnDownload');
+        const btnPretty = document.getElementById('btnPretty');
+        const btnToggleRaw = document.getElementById('btnToggleRaw');
 
         const presetList = document.getElementById('presetList');
         const historyList = document.getElementById('historyList');
-        const presetFilter = document.getElementById('presetFilter');
-        const btnImportPresets = document.getElementById('btnImportPresets');
-        const btnExportPresets = document.getElementById('btnExportPresets');
-        const presetJson = document.getElementById('presetJson');
-
-        const resultElem = document.getElementById('result');
-        const errorElem = document.getElementById('error');
+        const lastInfo = document.getElementById('lastInfo');
         const statusEl = document.getElementById('status');
         const httpStatus = document.getElementById('httpStatus');
-        const lastInfo = document.getElementById('lastInfo');
-
-        const btnPretty = document.getElementById('btnPretty');
-        const btnToggleRaw = document.getElementById('btnToggleRaw');
-        const btnDownload = document.getElementById('btnDownload');
-
-        const chartCanvas = document.getElementById('chartCanvas');
-        const chartCount = document.getElementById('chartCount');
-        const btnClearStats = document.getElementById('btnClearStats');
-
-        const mermaidInput = document.getElementById('mermaidInput');
-        const mermaidOutput = document.getElementById('mermaidOutput');
-        const btnRenderMermaid = document.getElementById('btnRenderMermaid');
-        const btnCopySVG = document.getElementById('btnCopySVG');
-
+        const btnSavePreset = document.getElementById('btnSavePreset');
+        const btnToggleProxy = document.getElementById('btnToggleProxy');
+        const proxyTag = document.getElementById('proxyTag');
+        const rateTag = document.getElementById('rateTag');
+        const actionSelect = document.getElementById('actionSelect');
         const btnClearHistory = document.getElementById('btnClearHistory');
         const btnResetPresets = document.getElementById('btnResetPresets');
-        const btnExportHistory = document.getElementById('btnExportHistory');
-        const btnOpenResult = document.getElementById('btnOpenResult');
 
-        const darkToggle = document.getElementById('darkToggle');
-        const darkIcon = document.getElementById('darkIcon');
-        const darkLabel = document.getElementById('darkLabel');
+        // Presets (default examples) — you may customize
+        const DEFAULT_PRESETS = [
+            { name: 'Sample get_info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_info' },
+            { name: 'Simple info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_simple_info' },
+            { name: 'Live streams', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_live_streams' }
+        ];
 
-        const toast = document.getElementById('toast');
+        // LocalStorage keys
+        const LS_HISTORY = 'apiViewer_history_v1';
+        const LS_PRESETS = 'apiViewer_presets_v1';
+        const LS_LASTURL = 'apiViewer_lasturl_v1';
+        const MAX_HISTORY = 12;
 
-        /* -------------------------
-           UI state
-           ------------------------- */
+        // Proxy usage flag (UI only toggles whether to prepend proxy)
         let useProxy = true;
-        let showPretty = true;
-        let lastJson = null;
-        let stats = loadStats();
-        let presets = loadPresets();
-        let historyListData = loadHistory();
+        const PROXY_BASE = 'https://cors-anywhere.com/';
 
-        // apply UI saved state
-        const uiState = (function(){ try { return JSON.parse(localStorage.getItem(LS_UI) || '{}'); } catch(e){ return {}; } })();
-        if(uiState.dark) document.body.classList.add('dark');
-
-        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
-        proxyName.textContent = useProxy ? 'cors-anywhere.com' : 'disabled';
-        rateTag.textContent = 'Rate limit: 20 req/min';
-
-        /* -------------------------
-           Helpers
-           ------------------------- */
-        function toastShow(msg, ms=1800){
-            toast.textContent = msg;
-            toast.classList.add('show');
-            setTimeout(()=> toast.classList.remove('show'), ms);
+        // Prefill from query param if present (keeps original behavior)
+        function getQueryParam(param) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(param);
         }
-        function saveUI(){
-            const s = { dark: document.body.classList.contains('dark') };
-            localStorage.setItem(LS_UI, JSON.stringify(s));
+        const prefillUrl = getQueryParam('url');
+        if(prefillUrl) {
+            inputUrl.value = decodeURIComponent(prefillUrl);
+        } else {
+            // restore last used URL
+            const last = localStorage.getItem(LS_LASTURL);
+            if(last) inputUrl.value = last;
         }
-        function showError(msg){
+
+        // --- UI utilities ---
+        function showError(msg) {
             errorElem.style.display = 'block';
             errorElem.textContent = msg;
             statusEl.textContent = 'Error';
-            statusEl.style.background = 'var(--danger)';
-            statusEl.style.color = '#fff';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#7f1d1d';
         }
-        function clearError(){
+        function clearError() {
             errorElem.style.display = 'none';
             errorElem.textContent = '';
             statusEl.textContent = 'Ready';
             statusEl.style.background = '';
             statusEl.style.color = '';
         }
-        function setLoading(on){
+
+        function setLoading(on) {
             if(on){
-                statusEl.innerHTML = 'Loading...';
+                statusEl.innerHTML = 'Loading <span class="spinner" aria-hidden="true"></span>';
             } else {
                 statusEl.textContent = 'Ready';
             }
         }
+
         function updateLastInfo(text){
             lastInfo.textContent = text;
         }
 
-        /* -------------------------
-           History management
-           ------------------------- */
+        // History management
         function loadHistory(){
             try{
                 const raw = localStorage.getItem(LS_HISTORY);
                 return raw ? JSON.parse(raw) : [];
-            }catch(e){ return []; }
+            }catch(e){return [];}
         }
-        function saveHistoryItem(url, ms, status){
+        function saveHistoryItem(url){
             if(!url) return;
             let list = loadHistory();
-            list = list.filter(i => i.url !== url);
-            list.unshift({ url, t: Date.now(), duration: ms, status });
+            // remove dup
+            list = list.filter(u => u.url !== url);
+            list.unshift({ url, t: Date.now() });
             if(list.length > MAX_HISTORY) list = list.slice(0, MAX_HISTORY);
             localStorage.setItem(LS_HISTORY, JSON.stringify(list));
             localStorage.setItem(LS_LASTURL, url);
@@ -459,324 +336,184 @@ B --> C[API]" style="width:56%;min-height:140px"></textarea>
             list.forEach(item => {
                 const btn = document.createElement('button');
                 const d = new Date(item.t);
-                const metaDiv = document.createElement('div');
-                metaDiv.className = 'metaRow';
-                metaDiv.innerHTML = `${d.toLocaleString()} · <span class="muted">${item.duration ? item.duration+' ms' : '—'}</span> · <span class="muted">${item.status || ''}</span>`;
-                btn.innerHTML = `<strong style="display:block;word-break:break-all;">${item.url}</strong>`;
-                btn.appendChild(metaDiv);
+                btn.innerHTML = `<strong>${item.url}</strong><div style="font-size:0.85rem;color:var(--muted)">${d.toLocaleString()}</div>`;
                 btn.addEventListener('click', () => {
                     inputUrl.value = item.url;
                 });
                 historyList.appendChild(btn);
             });
         }
-        renderHistory();
 
-        /* -------------------------
-           Presets management
-           ------------------------- */
-        const DEFAULT_PRESETS = [
-            { name: 'Sample get_info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_info' },
-            { name: 'Simple info', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_simple_info' },
-            { name: 'Live streams', url: 'http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx&action=get_live_streams' }
-        ];
-
+        // Presets management
         function loadPresets(){
             try{
                 const raw = localStorage.getItem(LS_PRESETS);
                 return raw ? JSON.parse(raw) : DEFAULT_PRESETS.slice();
-            } catch(e){ return DEFAULT_PRESETS.slice(); }
+            }catch(e){return DEFAULT_PRESETS.slice();}
         }
         function savePresets(arr){
             localStorage.setItem(LS_PRESETS, JSON.stringify(arr));
-            presets = arr;
             renderPresets();
         }
-        function addPreset(name, url){
+        function addPreset(label, url){
             const arr = loadPresets();
-            arr.unshift({ name: name || url, url });
-            if(arr.length > 40) arr.pop();
+            arr.unshift({ name: label || url, url });
+            // keep a reasonable limit
+            if(arr.length > 20) arr.pop();
             savePresets(arr);
-            toastShow('Preset saved');
         }
         function resetPresets(){
             localStorage.removeItem(LS_PRESETS);
-            presets = loadPresets();
             renderPresets();
         }
-        function renderPresets(filter=''){
+        function renderPresets(){
             const arr = loadPresets();
             presetList.innerHTML = '';
-            const filtered = filter ? arr.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()) || p.url.toLowerCase().includes(filter.toLowerCase())) : arr;
-            if(filtered.length === 0){
+            if(arr.length === 0){
                 presetList.innerHTML = '<div style="padding:8px;color:var(--muted)">No presets</div>';
                 return;
             }
-            filtered.forEach((p, idx) => {
+            arr.forEach(p => {
                 const btn = document.createElement('button');
-                btn.style.display = 'flex';
-                btn.style.flexDirection = 'column';
-                btn.style.alignItems = 'flex-start';
-                btn.innerHTML = `<div style="display:flex;justify-content:space-between;width:100%"><span style="font-weight:800">${p.name}</span>
-                    <small style="color:var(--muted);font-weight:600">#${idx+1}</small></div>
-                    <small class="muted" style="display:block;word-break:break-all;margin-top:6px">${p.url}</small>`;
+                btn.textContent = p.name;
+                btn.title = p.url;
                 btn.addEventListener('click', () => inputUrl.value = p.url);
-                btn.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    if(confirm('ลบ preset นี้?')) {
-                        const arr2 = loadPresets().filter(x => x.url !== p.url || x.name !== p.name);
-                        savePresets(arr2);
-                        toastShow('Preset removed');
-                    }
-                });
                 presetList.appendChild(btn);
             });
         }
+
+        // Initialize lists
         renderPresets();
+        renderHistory();
 
-        /* import/export presets */
-        btnImportPresets.addEventListener('click', () => {
-            try {
-                const arr = JSON.parse(presetJson.value);
-                if(!Array.isArray(arr)) throw new Error('JSON ต้องเป็น array');
-                savePresets(arr);
-                toastShow('Imported presets');
-            } catch(e) { showError('ไม่สามารถ import: ' + e.message); setTimeout(clearError,2000); }
-        });
-        btnExportPresets.addEventListener('click', () => {
-            const arr = loadPresets();
-            presetJson.value = JSON.stringify(arr, null, 2);
-            toastShow('Presets exported to textarea');
-        });
-
-        /* filter presets */
-        presetFilter.addEventListener('input', (e) => renderPresets(e.target.value));
-
-        /* -------------------------
-           Stats (chart) management – minimal chart using Canvas
-           ------------------------- */
-        function loadStats(){
-            try{
-                const raw = localStorage.getItem(LS_STATS);
-                return raw ? JSON.parse(raw) : [];
-            } catch(e){ return []; }
-        }
-        function saveStats(arr){
-            localStorage.setItem(LS_STATS, JSON.stringify(arr));
-            stats = arr;
-            renderChart();
-        }
-        function addStat(entry){
-            const arr = loadStats();
-            arr.unshift(entry);
-            if(arr.length > MAX_STATS) arr.pop();
-            saveStats(arr);
-        }
-        function clearStats(){
-            localStorage.removeItem(LS_STATS);
-            stats = [];
-            renderChart();
-        }
-        function renderChart(){
-            const ctx = chartCanvas.getContext('2d');
-            const w = chartCanvas.width = chartCanvas.clientWidth * devicePixelRatio;
-            const h = chartCanvas.height = (chartCanvas.clientHeight || 140) * devicePixelRatio;
-            ctx.clearRect(0,0,w,h);
-            const arr = loadStats().slice().reverse(); // oldest -> newest
-            chartCount.textContent = arr.length;
-            if(arr.length === 0){
-                ctx.fillStyle = getComputedStyle(document.body).classList.contains('dark') ? '#15202b' : '#f3f4f6';
-                ctx.fillRect(0,0,w,h);
-                ctx.fillStyle = getComputedStyle(document.body).classList.contains('dark') ? '#9aa4b2' : '#6b7280';
-                ctx.font = `${12*devicePixelRatio}px sans-serif`;
-                ctx.fillText('No requests yet', 10*devicePixelRatio, 24*devicePixelRatio);
-                return;
-            }
-            // compute bounds
-            const durations = arr.map(a => a.duration || 0);
-            const max = Math.max(50, Math.max(...durations));
-            const padding = 24*devicePixelRatio;
-            // draw grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-            ctx.lineWidth = 1;
-            for(let i=0;i<4;i++){
-                const y = padding + (h - padding*2) * (i/3);
-                ctx.beginPath(); ctx.moveTo(padding,y); ctx.lineTo(w-padding,y); ctx.stroke();
-            }
-            // plot line
-            const stepX = (w - padding*2) / Math.max(1, arr.length-1);
-            ctx.lineWidth = 2*devicePixelRatio;
-            ctx.beginPath();
-            arr.forEach((pt, i) => {
-                const x = padding + stepX * i;
-                const y = padding + (h - padding*2) * (1 - (pt.duration / max));
-                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-            });
-            ctx.strokeStyle = getComputedStyle(document.body).classList.contains('dark') ? 'rgba(124,58,237,0.9)' : 'rgba(79,70,229,0.9)';
-            ctx.stroke();
-
-            // draw points
-            arr.forEach((pt, i) => {
-                const x = padding + stepX * i;
-                const y = padding + (h - padding*2) * (1 - (pt.duration / max));
-                ctx.beginPath();
-                ctx.fillStyle = pt.status >= 400 ? 'rgba(240, 72, 88, 0.95)' : (getComputedStyle(document.body).classList.contains('dark') ? 'rgba(34,197,94,0.95)' : 'rgba(16,185,129,0.95)');
-                ctx.arc(x, y, 3*devicePixelRatio, 0, Math.PI*2);
-                ctx.fill();
-            });
-
-            // y label
-            ctx.fillStyle = getComputedStyle(document.body).classList.contains('dark') ? '#9aa4b2' : '#6b7280';
-            ctx.font = `${11*devicePixelRatio}px sans-serif`;
-            ctx.fillText('ms', 8*devicePixelRatio, padding - 6*devicePixelRatio);
-
-            // x labels: show timestamps at 3 positions
-            ctx.font = `${10*devicePixelRatio}px sans-serif`;
-            ctx.fillStyle = getComputedStyle(document.body).classList.contains('dark') ? '#9aa4b2' : '#6b7280';
-            for(let i=0;i<3;i++){
-                const idx = Math.floor((arr.length-1) * (i/2));
-                const x = padding + stepX * idx;
-                const label = new Date(arr[idx].t).toLocaleTimeString();
-                ctx.fillText(label, x - 20*devicePixelRatio, h - 8*devicePixelRatio);
-            }
-        }
-        renderChart();
-
-        btnClearStats.addEventListener('click', () => {
-            if(confirm('ลบสถิติการเรียกทั้งหมด?')) {
-                clearStats();
-                toastShow('Stats cleared');
-            }
-        });
-
-        /* -------------------------
-           Mermaid-like minimal renderer
-           (supports very small subset: graph LR/TD and A[Label] --> B[Label])
-           ------------------------- */
-        function parseMermaid(text){
-            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-            if(lines.length === 0) return null;
-            let dir = 'LR';
-            if(lines[0].startsWith('graph')) {
-                const parts = lines[0].split(/\s+/);
-                if(parts[1]) dir = parts[1].toUpperCase();
-                lines.shift();
-            }
-            const nodes = {}; // id -> {id,label}
-            const edges = [];
-            const order = [];
-            lines.forEach(ln => {
-                // pattern: A[Label] --> B[Label]  (allow spaces)
-                const arrowMatch = ln.match(/^([^\s\-\[]+)(\[[^\]]*\])?\s*-->\s*([^\s\-\[]+)(\[[^\]]*\])?/);
-                if(arrowMatch) {
-                    const idA = arrowMatch[1];
-                    const labelA = arrowMatch[2] ? arrowMatch[2].slice(1,-1) : idA;
-                    const idB = arrowMatch[3];
-                    const labelB = arrowMatch[4] ? arrowMatch[4].slice(1,-1) : idB;
-                    if(!nodes[idA]) { nodes[idA] = {id:idA,label:labelA}; order.push(idA); }
-                    if(!nodes[idB]) { nodes[idB] = {id:idB,label:labelB}; order.push(idB); }
-                    edges.push({from:idA,to:idB});
-                } else {
-                    // single node definition e.g., A[Label]
-                    const m = ln.match(/^([^\s\-\[]+)(\[[^\]]*\])?/);
-                    if(m){
-                        const id = m[1];
-                        const label = m[2] ? m[2].slice(1,-1) : id;
-                        if(!nodes[id]) { nodes[id] = {id,label}; order.push(id); }
-                    }
+        // Utility: pretty/compact JSON toggle
+        let lastJson = null;
+        let showPretty = true;
+        function renderResultFromJson(json, statusCode){
+            lastJson = json;
+            httpStatus.textContent = statusCode ? `HTTP ${statusCode}` : '';
+            if(showPretty){
+                try{
+                    resultElem.textContent = JSON.stringify(json, null, 4);
+                }catch(e){
+                    resultElem.textContent = String(json);
                 }
-            });
-            return { dir, nodes, edges, order };
-        }
-
-        function renderMermaidToSVG(text){
-            const parsed = parseMermaid(text);
-            if(!parsed) return '<div class="muted">No diagram</div>';
-            // Basic layout: nodes in sequence horizontally (LR) or vertically (TD).
-            const nodeSize = {w:140,h:40};
-            const gap = 36;
-            const ids = parsed.order;
-            const pos = {};
-            if(parsed.dir === 'TD'){
-                ids.forEach((id,i) => pos[id] = {x: 10, y: i*(nodeSize.h+gap)+10});
             } else {
-                ids.forEach((id,i) => pos[id] = {x: i*(nodeSize.w+gap)+10, y: 10});
+                try{
+                    resultElem.textContent = JSON.stringify(json);
+                }catch(e){
+                    resultElem.textContent = String(json);
+                }
             }
-            // SVG size
-            const maxX = Math.max(...ids.map(id => pos[id].x)) + nodeSize.w + 20;
-            const maxY = Math.max(...ids.map(id => pos[id].y)) + nodeSize.h + 20;
-            const isDark = document.body.classList.contains('dark');
-            let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${maxX}" height="${maxY}" viewBox="0 0 ${maxX} ${maxY}">`;
-            svg += `<defs>
-                <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                    <path d="M 0 0 L 10 5 L 0 10 z" fill="${isDark ? '#e6eef8' : '#0f172a'}" />
-                </marker>
-            </defs>`;
-            // edges
-            parsed.edges.forEach(e => {
-                const a = pos[e.from], b = pos[e.to];
-                const ax = a.x + nodeSize.w, ay = a.y + nodeSize.h/2;
-                const bx = b.x, by = b.y + nodeSize.h/2;
-                // simple cubic curve
-                const cx1 = ax + 20;
-                const cx2 = bx - 20;
-                svg += `<path d="M ${ax} ${ay} C ${cx1} ${ay} ${cx2} ${by} ${bx} ${by}" stroke="${isDark ? '#9aa4b2' : '#6b7280'}" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>`;
-            });
-            // nodes
-            Object.values(parsed.nodes).forEach(n => {
-                const p = pos[n.id];
-                const rx = 8;
-                svg += `<g class="node">`;
-                svg += `<rect x="${p.x}" y="${p.y}" width="${nodeSize.w}" height="${nodeSize.h}" rx="${rx}" ry="${rx}" fill="${isDark ? '#071022' : '#fff'}" stroke="${isDark ? '#1f2a37' : '#e6e7ee'}" />`;
-                svg += `<text x="${p.x + nodeSize.w/2}" y="${p.y + nodeSize.h/2 + 5}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="${isDark ? '#e6eef8' : '#0f172a'}">${escapeXml(n.label)}</text>`;
-                svg += `</g>`;
-            });
-            svg += `</svg>`;
-            return svg;
         }
-        function escapeXml(s){
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        }
-        btnRenderMermaid.addEventListener('click', () => {
-            const val = mermaidInput.value || 'graph LR\nA[Client] --> B[Proxy]\nB --> C[API]';
-            const svg = renderMermaidToSVG(val);
-            mermaidOutput.innerHTML = svg;
-        });
-        btnCopySVG.addEventListener('click', async () => {
-            const svg = mermaidOutput.querySelector('svg');
-            if(!svg) return toastShow('ไม่มี SVG ให้คัดลอก');
-            const str = new XMLSerializer().serializeToString(svg);
-            try{
-                await navigator.clipboard.writeText(str);
-                toastShow('SVG copied to clipboard');
-            }catch(e){ showError('คัดลอก SVG ไม่สำเร็จ'); setTimeout(clearError,1400); }
+
+        // Copy / Download
+        btnCopy.addEventListener('click', () => {
+            if(!resultElem.textContent) return;
+            navigator.clipboard.writeText(resultElem.textContent)
+            .then(()=> {
+                statusEl.textContent = 'Copied';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+            })
+            .catch(()=> showError('ไม่สามารถคัดลอกได้'));
         });
 
-        /* -------------------------
-           Build proxied URL (reuse logic)
-           ------------------------- */
-        function convertTimestamp(ts) {
-            const t = parseInt(ts);
-            if (isNaN(t)) return ts;
-            const d = new Date(t * 1000);
-            return d.toISOString().replace('T', ' ').substr(0, 19);
-        }
-        function fixApiPath(urlObj) {
-            if(urlObj.pathname.endsWith("get.php")){
-                urlObj.pathname = urlObj.pathname.replace("get.php", "player_api.php");
+        btnCopyUrl.addEventListener('click', () => {
+            const url = buildProxyUrlFromInput();
+            if(!url) return showError('ไม่มี URL ที่จะคัดลอก');
+            navigator.clipboard.writeText(url)
+                .then(()=> {
+                    statusEl.textContent = 'URL copied';
+                    setTimeout(()=> statusEl.textContent = 'Ready', 1200);
+                })
+                .catch(()=> showError('คัดลอก URL ไม่สำเร็จ'));
+        });
+
+        btnDownload.addEventListener('click', () => {
+            if(!resultElem.textContent) return showError('ไม่มีข้อมูลให้ดาวน์โหลด');
+            const blob = new Blob([resultElem.textContent], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'response.json';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
+        });
+
+        btnPretty.addEventListener('click', () => {
+            showPretty = true;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnPretty.classList.add('btn-primary');
+            btnPretty.style.color='white';
+            btnToggleRaw.classList.remove('btn-primary');
+            btnToggleRaw.style.color='';
+        });
+
+        btnToggleRaw.addEventListener('click', () => {
+            showPretty = false;
+            if(lastJson !== null) renderResultFromJson(lastJson);
+            btnToggleRaw.classList.add('btn-primary');
+            btnToggleRaw.style.color='white';
+            btnPretty.classList.remove('btn-primary');
+            btnPretty.style.color='';
+        });
+
+        // Toggle proxy usage
+        btnToggleProxy.addEventListener('click', () => {
+            useProxy = !useProxy;
+            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        });
+
+        // Save preset
+        btnSavePreset.addEventListener('click', () => {
+            const val = inputUrl.value.trim();
+            if(!val){ showError('ไม่มี URL ให้บันทึกเป็น preset'); return; }
+            const label = prompt('ตั้งชื่อ preset (ปล่อยว่างเพื่อใช้ URL เป็นชื่อ):');
+            addPreset(label || val, val);
+            statusEl.textContent = 'Preset saved';
+            setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+        });
+
+        // Clear form
+        btnClear.addEventListener('click', () => {
+            inputUrl.value = '';
+            clearError();
+            resultElem.textContent = '';
+            inputUrl.focus();
+        });
+
+        // History controls
+        btnClearHistory.addEventListener('click', () => {
+            if(confirm('ลบประวัติทั้งหมด?')) {
+                clearHistory();
+                statusEl.textContent = 'History cleared';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
             }
-            return urlObj;
-        }
+        });
+        btnResetPresets.addEventListener('click', () => {
+            if(confirm('คืนค่า presets เริ่มต้น?')) {
+                resetPresets();
+                statusEl.textContent = 'Presets reset';
+                setTimeout(()=> statusEl.textContent = 'Ready', 1000);
+            }
+        });
+
+        // Build and return the proxied URL string or plain URL depending on useProxy
         function buildProxyUrlFromInput(){
             const fullUrlStr = inputUrl.value.trim();
             if(!fullUrlStr) return null;
             try{
                 let urlObj = new URL(fullUrlStr);
                 urlObj = fixApiPath(urlObj);
+                // remove type & output like original
                 urlObj.searchParams.delete('type');
                 urlObj.searchParams.delete('output');
+
+                // fill action if not present and select provided
                 if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
                 else if(!urlObj.searchParams.get('action')) urlObj.searchParams.set('action', 'get_info');
+
                 const final = urlObj.toString();
                 return useProxy ? (PROXY_BASE + final) : final;
             }catch(e){
@@ -784,55 +521,78 @@ B --> C[API]" style="width:56%;min-height:140px"></textarea>
             }
         }
 
-        /* -------------------------
-           Main fetch logic (measures timing, saves stats/history)
-           ------------------------- */
-        form.addEventListener('submit', async (ev) => {
-            ev.preventDefault();
+        // Main request handler (preserves previous behavior and header)
+        form.addEventListener('submit', event => {
+            event.preventDefault();
             clearError();
+
             const fullUrl = inputUrl.value.trim();
-            if(!fullUrl) { showError('กรุณากรอก URL'); return; }
+            if (!fullUrl) {
+                showError('กรุณากรอก URL');
+                return;
+            }
+
             let urlObj;
-            try{ urlObj = new URL(fullUrl); } catch(e){ showError('URL ไม่ถูกต้อง'); return; }
+            try {
+                urlObj = new URL(fullUrl);
+            } catch (err) {
+                showError('URL ไม่ถูกต้อง');
+                return;
+            }
+
+            // Adjust path and params like original
             urlObj = fixApiPath(urlObj);
             urlObj.searchParams.delete('type');
             urlObj.searchParams.delete('output');
+
             const username = urlObj.searchParams.get('username');
             const password = urlObj.searchParams.get('password');
-            if(!username || !password) { showError('กรุณาใส่ username และ password ใน URL'); return; }
-            if(!urlObj.searchParams.get('action')){
+            if (!username || !password) {
+                showError('กรุณาใส่ username และ password ใน URL');
+                return;
+            }
+
+            if (!urlObj.searchParams.get('action')) {
                 if(actionSelect.value) urlObj.searchParams.set('action', actionSelect.value);
                 else urlObj.searchParams.set('action', 'get_info');
             }
+
+            // Construct final URL and perform fetch
             const targetUrl = urlObj.toString();
             const proxyUrl = useProxy ? (PROXY_BASE + targetUrl) : targetUrl;
-            // UI
+
+            // Update UI
             resultElem.textContent = 'Loading...';
             setLoading(true);
             httpStatus.textContent = '';
             updateLastInfo(`Requesting: ${useProxy ? 'via proxy' : 'direct'} — ${new Date().toLocaleString()}`);
 
-            // history
+            // Save to history
             saveHistoryItem(targetUrl);
 
-            const start = performance.now();
-            try{
-                const response = await fetch(proxyUrl, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                const duration = Math.round(performance.now() - start);
-                if(!response.ok){
-                    httpStatus.textContent = `HTTP ${response.status}`;
-                    // save stat
-                    addStat({ t: Date.now(), url: targetUrl, status: response.status, duration });
-                    saveHistoryItem(targetUrl, duration, response.status);
-                    throw new Error('Network response was not ok: ' + response.status);
+            fetch(proxyUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            })
+            .then(response => {
+                setLoading(false);
+                if(!response.ok) {
+                    httpStatus.textContent = `HTTP ${response.status}`;
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                // Try parse JSON, but if fails, return text
                 const contentType = response.headers.get('content-type') || '';
-                let obj = null;
-                if(contentType.includes('application/json')){
-                    const jsonData = await response.json();
-                    // convert timestamps for UX
+                if(contentType.includes('application/json')) {
+                    return response.json().then(jsonData => ({ jsonData, status: response.status }));
+                } else {
+                    return response.text().then(txt => ({ txt, status: response.status }));
+                }
+            })
+            .then(obj => {
+                if(obj.jsonData){
+                    const jsonData = obj.jsonData;
+                    // convert timestamps like original
                     if(jsonData.user_info){
                         jsonData.user_info.exp_date_readable = convertTimestamp(jsonData.user_info.exp_date);
                         jsonData.user_info.created_at_readable = convertTimestamp(jsonData.user_info.created_at);
@@ -840,191 +600,40 @@ B --> C[API]" style="width:56%;min-height:140px"></textarea>
                     if(jsonData.server_info){
                         jsonData.server_info.timestamp_now_readable = convertTimestamp(jsonData.server_info.timestamp_now);
                     }
-                    obj = jsonData;
-                    lastJson = obj;
-                    renderResultFromJson(obj, response.status);
+                    renderResultFromJson(jsonData, obj.status);
                     clearError();
-                } else {
-                    const txt = await response.text();
+                } else if(obj.txt){
+                    // display raw text
                     lastJson = null;
-                    httpStatus.textContent = `HTTP ${response.status}`;
-                    resultElem.textContent = txt;
+                    httpStatus.textContent = `HTTP ${obj.status}`;
+                    resultElem.textContent = obj.txt;
                 }
-                addStat({ t: Date.now(), url: targetUrl, status: response.status, duration });
-                saveHistoryItem(targetUrl, duration, response.status);
-            } catch(err){
+            })
+            .catch(err => {
                 setLoading(false);
                 showError('เกิดข้อผิดพลาด: ' + err.message);
                 resultElem.textContent = '';
-                // save stat as error
-                const duration = Math.round(performance.now() - start);
-                addStat({ t: Date.now(), url: targetUrl, status: 0, duration });
-                saveHistoryItem(targetUrl, duration, 0);
-            } finally {
-                setLoading(false);
-            }
+            });
         });
 
-        function renderResultFromJson(json, statusCode){
-            lastJson = json;
-            httpStatus.textContent = statusCode ? `HTTP ${statusCode}` : '';
-            if(showPretty){
-                try{ resultElem.textContent = JSON.stringify(json, null, 4); } catch(e){ resultElem.textContent = String(json); }
-            } else {
-                try{ resultElem.textContent = JSON.stringify(json); } catch(e){ resultElem.textContent = String(json); }
-            }
-            renderChart();
-        }
-
-        /* -------------------------
-           copy/download / pretty/raw toggles
-           ------------------------- */
-        btnCopy.addEventListener('click', () => {
-            if(!resultElem.textContent) return;
-            navigator.clipboard.writeText(resultElem.textContent).then(()=> {
-                toastShow('Copied result');
-            }).catch(()=> showError('ไม่สามารถคัดลอกได้'));
-        });
-        btnCopyUrl.addEventListener('click', () => {
-            const url = buildProxyUrlFromInput();
-            if(!url) return showError('ไม่มี URL ที่จะคัดลอก');
-            navigator.clipboard.writeText(url).then(()=> toastShow('URL copied')).catch(()=> showError('คัดลอก URL ไม่สำเร็จ'));
-        });
-        btnDownload.addEventListener('click', () => {
-            if(!resultElem.textContent) return showError('ไม่มีข้อมูลให้ดาวน์โหลด');
-            const blob = new Blob([resultElem.textContent], { type: 'application/json' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'response.json'; document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(()=> URL.revokeObjectURL(a.href), 1500);
-        });
-
-        btnPretty.addEventListener('click', () => {
-            showPretty = true; if(lastJson) renderResultFromJson(lastJson); btnPretty.classList.add('btn-primary'); btnPretty.style.color='white'; btnToggleRaw.classList.remove('btn-primary'); btnToggleRaw.style.color='';
-        });
-        btnToggleRaw.addEventListener('click', () => {
-            showPretty = false; if(lastJson) renderResultFromJson(lastJson); btnToggleRaw.classList.add('btn-primary'); btnToggleRaw.style.color='white'; btnPretty.classList.remove('btn-primary'); btnPretty.style.color='';
-        });
-
-        /* -------------------------
-           Preset actions
-           ------------------------- */
-        btnSavePreset.addEventListener('click', () => {
-            const val = inputUrl.value.trim();
-            if(!val){ showError('ไม่มี URL ให้บันทึกเป็น preset'); return; }
-            const label = prompt('ตั้งชื่อ preset (ปล่อยว่างเพื่อใช้ URL เป็นชื่อ):');
-            addPreset(label || val, val);
-        });
-        btnClear.addEventListener('click', () => { inputUrl.value=''; clearError(); resultElem.textContent=''; inputUrl.focus(); });
-
-        /* -------------------------
-           History/presets tools
-           ------------------------- */
-        btnClearHistory.addEventListener('click', () => {
-            if(confirm('ลบประวัติทั้งหมด?')) {
-                clearHistory();
-                toastShow('History cleared');
-            }
-        });
-        btnResetPresets.addEventListener('click', () => {
-            if(confirm('คืนค่า presets เริ่มต้น?')) {
-                resetPresets();
-                toastShow('Presets reset');
-            }
-        });
-        btnExportHistory.addEventListener('click', () => {
-            const arr = loadHistory();
-            const data = JSON.stringify(arr, null, 2);
-            const a = document.createElement('a'); const blob = new Blob([data], { type: 'application/json' });
-            a.href = URL.createObjectURL(blob); a.download = 'history.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=> URL.revokeObjectURL(a.href),1500);
-            toastShow('History exported');
-        });
-        btnOpenResult.addEventListener('click', () => {
-            if(!resultElem.textContent) return showError('ไม่มีข้อมูลจะเปิด');
-            const blob = new Blob([resultElem.textContent], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(()=> URL.revokeObjectURL(url), 2000);
-        });
-
-        /* -------------------------
-           Proxy toggle
-           ------------------------- */
-        btnToggleProxy.addEventListener('click', () => {
-            useProxy = !useProxy;
-            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
-            proxyName.textContent = useProxy ? 'cors-anywhere.com' : 'disabled';
-            toastShow('Proxy ' + (useProxy ? 'enabled' : 'disabled'));
-        });
-
-        /* -------------------------
-           Keyboard shortcuts
-           Ctrl/Cmd+Enter submit, Ctrl+K focus URL, / toggle dark
-           ------------------------- */
-        document.addEventListener('keydown', (e) => {
-            if((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); btnFetch.click(); }
-            if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k'){ e.preventDefault(); inputUrl.focus(); inputUrl.select(); }
-            if(e.key === '/') { // toggle dark
-                if(document.activeElement.tagName.toLowerCase() === 'input' || document.activeElement.tagName.toLowerCase() === 'textarea') return;
-                toggleDark();
-            }
-        });
-
-        /* -------------------------
-           Dark mode toggle
-           ------------------------- */
-        function toggleDark(){
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            darkIcon.textContent = isDark ? '☀️' : '🌙';
-            darkLabel.textContent = isDark ? 'Light' : 'Dark';
-            saveUI();
-            renderChart(); // repaint chart with correct colors
-        }
-        darkToggle.addEventListener('click', toggleDark);
-        darkToggle.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleDark(); } });
-
-        /* -------------------------
-           Init form prefill & load last url
-           ------------------------- */
-        (function init(){
-            const urlParam = new URLSearchParams(window.location.search).get('url');
-            if(urlParam) inputUrl.value = decodeURIComponent(urlParam);
-            else {
-                const last = localStorage.getItem(LS_LASTURL);
-                if(last) inputUrl.value = last;
-            }
-        })();
-
-        /* -------------------------
-           Export/Import presets from textarea
-           ------------------------- */
-        // export when clicking export (handled above). import handled above.
-
-        /* -------------------------
-           Utility: initial states
-           ------------------------- */
+        // Initial UI states
         btnPretty.classList.add('btn-primary');
         btnPretty.style.color='white';
-        clearError();
 
-        // initial mermaid sample
-        mermaidInput.value = `graph LR
-Client[Client] --> Proxy[Proxy]
-Proxy --> API[Server API]
-API --> DB[Database]`;
+        // Expose a keyboard shortcut: Ctrl+Enter to submit
+        inputUrl.addEventListener('keydown', (e) => {
+            if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){
+                btnFetch.click();
+            }
+        });
 
-        // initial render mermaid
-        btnRenderMermaid.click();
+        // Render initial tags
+        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        rateTag.innerHTML = 'Rate limit: 20 req/min';
 
-        // initial render presets/history/stats
-        renderPresets();
-        renderHistory();
-        renderChart();
+        // set initial last info
+        updateLastInfo('Ready — no requests yet');
 
-        // expose to console for debugging
-        window.__apiViewer = {
-            loadPresets, savePresets, loadHistory, loadStats, renderChart, renderMermaidToSVG
-        };
     </script>
 </body>
 </html>
-
