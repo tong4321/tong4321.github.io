@@ -566,9 +566,9 @@
             setLoading(true);
             httpStatus.textContent = '';
             updateLastInfo(`Requesting: ${useProxy ? 'via proxy' : 'direct'} — ${new Date().toLocaleString()}`);
-
-            // Save to history
-            saveHistoryItem(targetUrl);
+            
+            // Save to history — store the original input URL (fullUrl) instead of targetUrl
+            saveHistoryItem(fullUrl);
 
             fetch(proxyUrl, {
                 headers: {
