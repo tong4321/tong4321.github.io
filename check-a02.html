@@ -26,8 +26,8 @@
             min-height:100vh;
         }
         .wrap{
-            width:100%;
-            max-width:1200px; /* increased width */
+            width:90%; /* changed to 90% of viewport width */
+            max-width:none; /* allow 90% to take effect */
             background:var(--card);
             border-radius:14px;
             padding:28px;
@@ -166,7 +166,7 @@
             </div>
 
             <div style="margin-top:12px" class="note">
-                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
+                หมายเหตุ: โค้ดยังคงใช้ CORS proxy สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
             </div>
         </div>
 
@@ -258,9 +258,21 @@
         const LS_LASTURL = 'apiViewer_lasturl_v1';
         const MAX_HISTORY = 12;
 
-        // Proxy usage flag (UI only toggles whether to prepend proxy)
-        let useProxy = true;
-        const PROXY_BASE = 'https://cors-anywhere.com/';
+        // Proxy usage: support multiple proxies (cycle between them and 'disabled')
+        const PROXIES = [
+            'https://cors-anywhere.com/',
+            'https://cors-anywhere.herokuapp.com/',
+            'disabled'
+        ];
+        // index in PROXIES; default 0 => cors-anywhere.com
+        let proxyIndex = 0;
+
+        function isProxyEnabled() {
+            return PROXIES[proxyIndex] !== 'disabled';
+        }
+        function currentProxyBase() {
+            return isProxyEnabled() ? PROXIES[proxyIndex] : null;
+        }
 
         // Prefill from query param if present (keeps original behavior)
         function getQueryParam(param) {
@@ -459,10 +471,17 @@
             btnPretty.style.color='';
         });
 
-        // Toggle proxy usage
+        // Toggle proxy usage: cycle among PROXIES array (cors-anywhere.com -> herokuapp -> disabled -> ...)
+        function updateProxyTag() {
+            const p = PROXIES[proxyIndex];
+            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${p === 'disabled' ? 'disabled' : p.replace(/https?:\\/\\//, '').replace(/\\/$/, '')}</strong>`;
+        }
+
         btnToggleProxy.addEventListener('click', () => {
-            useProxy = !useProxy;
-            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+            proxyIndex = (proxyIndex + 1) % PROXIES.length;
+            updateProxyTag();
+            statusEl.textContent = isProxyEnabled() ? `Proxy: ${PROXIES[proxyIndex]}` : 'Proxy disabled';
+            setTimeout(()=> statusEl.textContent = 'Ready', 900);
         });
 
         // Save preset
@@ -499,7 +518,7 @@
             }
         });
 
-        // Build and return the proxied URL string or plain URL depending on useProxy
+        // Build and return the proxied URL string or plain URL depending on selected proxy
         function buildProxyUrlFromInput(){
             const fullUrlStr = inputUrl.value.trim();
             if(!fullUrlStr) return null;
@@ -515,7 +534,8 @@
                 else if(!urlObj.searchParams.get('action')) urlObj.searchParams.set('action', 'get_info');
 
                 const final = urlObj.toString();
-                return useProxy ? (PROXY_BASE + final) : final;
+                const pb = currentProxyBase();
+                return pb ? (pb + final) : final;
             }catch(e){
                 return null;
             }
@@ -559,16 +579,17 @@
 
             // Construct final URL and perform fetch
             const targetUrl = urlObj.toString();
-            const proxyUrl = useProxy ? (PROXY_BASE + targetUrl) : targetUrl;
+            const pb = currentProxyBase();
+            const proxyUrl = pb ? (pb + targetUrl) : targetUrl;
 
             // Update UI
             resultElem.textContent = 'Loading...';
             setLoading(true);
             httpStatus.textContent = '';
-            updateLastInfo(`Requesting: ${useProxy ? 'via proxy' : 'direct'} — ${new Date().toLocaleString()}`);
-
-            // Save to history
-            saveHistoryItem(targetUrl);
+            updateLastInfo(`Requesting: ${pb ? ('via ' + pb.replace(/https?:\\/\\//, '').replace(/\\/$/, '')) : 'direct'} — ${new Date().toLocaleString()}`);
+            
+            // Save to history — store the original input URL (fullUrl) instead of targetUrl
+            saveHistoryItem(fullUrl);
 
             fetch(proxyUrl, {
                 headers: {
@@ -628,7 +649,7 @@
         });
 
         // Render initial tags
-        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        updateProxyTag();
         rateTag.innerHTML = 'Rate limit: 20 req/min';
 
         // set initial last info
