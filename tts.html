@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Modern TTS Studio — Puter.js + OpenAI TTS 🎙️</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<!-- Libraries -->
+<script src="https://js.puter.com/v2/"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0b1220; --card:#0f1726; --muted:#9fb0c6; --accent:#6ee7b7; --accent-2:#60a5fa;
+    --glass:rgba(255,255,255,0.03); --radius:12px; --maxw:1100px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#041028 0%,#07122b 100%);
+    color:#e6f0f8; display:flex;align-items:flex-start;justify-content:center;min-height:100vh;padding:28px;
+  }
+  .app{width:100%;max-width:var(--maxw);display:grid;grid-template-columns:1fr 360px;gap:20px}
+  @media(max-width:980px){ .app{grid-template-columns:1fr} }
+  header{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:#042826}
+  h1{margin:0;font-size:18px}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:var(--radius);border:1px solid rgba(255,255,255,0.03)}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:8px}
+  textarea,input,select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:14px}
+  textarea{min-height:140px;resize:vertical}
+  .row{display:flex;gap:12px;align-items:center}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  button{
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:#042826;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer;
+  }
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .status{margin-top:12px;padding:10px;border-radius:10px;background:rgba(255,255,255,0.02);color:var(--muted);font-size:13px}
+  .meta{font-size:12px;color:var(--muted);margin-top:10px}
+  .right{display:flex;flex-direction:column;gap:14px}
+  .preview{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);border:1px solid rgba(255,255,255,0.02)}
+  .chip{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-size:13px;color:var(--muted)}
+  .small{font-size:13px;color:var(--muted)}
+  .kbd{background:rgba(255,255,255,0.03);padding:6px 8px;border-radius:6px;font-weight:600}
+  .flex-between{display:flex;justify-content:space-between;align-items:center}
+  .visuals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mermaid{background:transparent;padding:8px;border-radius:8px}
+  .history{max-height:160px;overflow:auto;margin-top:8px;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02)}
+  svg.icon{width:20px;height:20px;vertical-align:middle}
+  footer{font-size:12px;color:var(--muted);margin-top:8px}
+  .install{margin-left:auto}
+</style>
+</head>
+<body>
+<main style="width:100%;max-width:var(--maxw)">
+  <header>
+    <div class="logo">TTS</div>
+    <div>
+      <h1>Modern TTS Studio 🎙️</h1>
+      <p class="lead">Free & unlimited OpenAI Text-to-Speech via Puter.js — user-pays model for instant TTS (no API key required).</p>
+    </div>
+    <div class="install" id="installArea"></div>
+  </header>
+
+  <div class="app">
+    <!-- LEFT: Controls -->
+    <section class="panel">
+      <label for="text">Text to speak</label>
+      <textarea id="text" maxlength="3000" placeholder="Type anything...">สวัสดีครับ! This demo uses Puter.js to call OpenAI TTS (gpt-4o-mini-tts, tts-1, tts-1-hd).</textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost" onclick="insertSample('Hello world! This is a short friendly demo.')">🙂 Short</button>
+          <button class="btn-ghost" onclick="insertSample('Welcome to the Modern TTS Studio. This demo showcases model and voice switching with instant playback.')">📣 Long</button>
+        </div>
+        <div class="small" id="chars">0 / 3000</div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+        <div style="flex:1">
+          <label for="model">Model</label>
+          <select id="model">
+            <option value="gpt-4o-mini-tts">gpt-4o-mini-tts</option>
+            <option value="tts-1">tts-1 (fast)</option>
+            <option value="tts-1-hd">tts-1-hd (quality)</option>
+          </select>
+        </div>
+        <div style="width:180px">
+          <label for="voice">Voice</label>
+          <select id="voice">
+            <option>alloy</option><option>ash</option><option>ballad</option><option>coral</option>
+            <option>echo</option><option>fable</option><option selected>nova</option><option>onyx</option><option>sage</option><option>shimmer</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <div style="flex:1">
+          <label for="format">Output format</label>
+          <select id="format"><option selected>mp3</option><option>wav</option><option>opus</option><option>aac</option><option>flac</option><option>pcm</option></select>
+        </div>
+        <div style="width:140px">
+          <label for="instr">Instructions</label>
+          <input id="instr" placeholder="e.g. friendly, clear, slightly fast" />
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="convert">Convert & Play ▶️</button>
+        <button id="play" class="btn-ghost" disabled><span class="material-icons" style="vertical-align:middle">play_arrow</span> Play</button>
+        <button id="download" class="btn-ghost" disabled><span class="material-icons" style="vertical-align:middle">download</span> Download</button>
+        <button id="stop" class="btn-ghost" disabled><span class="material-icons" style="vertical-align:middle">stop</span> Stop</button>
+        <button id="clearHistory" class="btn-ghost">🗑️ Clear</button>
+      </div>
+
+      <div class="status" id="status">Ready — uses Puter.js to access OpenAI TTS.[(Puter Developer)](https://developer.puter.com/tutorials/free-unlimited-openai-text-to-speech-api/)</div>
+
+      <div class="meta">Tip: Text &lt; 3000 chars. The User-Pays policy means users cover TTS costs via Puter.js provider.</div>
+
+      <div style="margin-top:12px" class="visuals">
+        <div class="panel preview">
+          <div class="flex-between">
+            <div><span class="chip">Model: <strong id="metaModel">gpt-4o-mini-tts</strong></span></div>
+            <div class="small">Voice: <strong id="metaVoice">nova</strong></div>
+          </div>
+          <div id="audioWrap" style="margin-top:8px" class="small">No audio yet — convert to generate.</div>
+          <div class="history" id="history"></div>
+        </div>
+
+        <div class="panel preview">
+          <div id="chart" style="height:180px;width:100%"></div>
+          <div class="small" style="margin-top:8px">Realtime model usage visualization (mock) — increments when you convert.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Info / Mermaid / PWA -->
+    <aside class="right">
+      <div class="panel">
+        <div style="display:flex;gap:8px;align-items:center">
+          <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="2" y="3" width="20" height="18" rx="2" fill="#6ee7b7"/></svg>
+          <div>
+            <div class="small">Puter.js • OpenAI TTS</div>
+            <div style="font-weight:700">Instant, no API key</div>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:10px 0">
+
+        <label>Flow</label>
+        <div class="mermaid">
+flowchart LR
+  A[User types text] --> B[Puter.js call]
+  B --> C{Model choice}
+  C -->|gpt-4o-mini-tts| D[Fast & balanced]
+  C -->|tts-1| E[Low latency]
+  C -->|tts-1-hd| F[High quality]
+  D --> G[Audio blob]
+  E --> G
+  F --> G
+  G --> H[Play / Download]
+        </div>
+
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:10px 0">
+        <label>Install / PWA</label>
+        <div class="small">Install the app to your device for quick access. Offline shell cached (best on HTTPS / localhost).</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnInstall" class="btn-ghost" style="flex:1">📥 Install</button>
+          <button id="btnAbout" class="btn-ghost">ℹ️ About</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <label>Quick presets</label>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn-ghost" onclick="apply('gpt-4o-mini-tts','nova','mp3','Friendly and upbeat')">Friendly</button>
+          <button class="btn-ghost" onclick="apply('tts-1','alloy','wav','Calm and slow')">Calm</button>
+          <button class="btn-ghost" onclick="apply('tts-1-hd','shimmer','flac','Studio narration')">Narration</button>
+        </div>
+        <footer style="margin-top:10px">This demo references Puter.js documentation and models list.[(Puter Developer)](https://developer.puter.com/tutorials/free-unlimited-openai-text-to-speech-api/)</footer>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+/* UI bindings & functionality */
+const text = document.getElementById('text'), model = document.getElementById('model'),
+voice = document.getElementById('voice'), format = document.getElementById('format'),
+instr = document.getElementById('instr'), btnConvert = document.getElementById('convert'),
+status = document.getElementById('status'), metaModel = document.getElementById('metaModel'),
+metaVoice = document.getElementById('metaVoice'), audioWrap = document.getElementById('audioWrap'),
+playBtn = document.getElementById('play'), downloadBtn = document.getElementById('download'),
+stopBtn = document.getElementById('stop'), chars = document.getElementById('chars'),
+historyEl = document.getElementById('history'), clearHistory = document.getElementById('clearHistory');
+
+let lastAudio = null, lastUrl = null, installPromptEvent = null;
+let usage = { 'gpt-4o-mini-tts': 0, 'tts-1': 0, 'tts-1-hd': 0 };
+
+/* Mermaid init */
+mermaid.initialize({startOnLoad:true});
+
+/* ECharts: simple bar */
+const chart = echarts.init(document.getElementById('chart'));
+function drawChart(){
+  chart.setOption({
+    color:['#60a5fa','#6ee7b7','#fbbf24'],
+    xAxis:{type:'category',data:Object.keys(usage),axisLine:{lineStyle:{color:'rgba(255,255,255,0.06)'}},axisLabel:{color:'#9fb0c6'}},
+    yAxis:{type:'value',axisLine:{show:false},splitLine:{lineStyle:{color:'rgba(255,255,255,0.03)'}},axisLabel:{color:'#9fb0c6'}},
+    series:[{type:'bar',data:Object.values(usage),barWidth:20}]
+  });
+}
+drawChart();
+
+/* helpers */
+function setStatus(txt, err=false){ status.textContent = txt; status.style.color = err ? '#ffb4b4' : 'var(--muted)'; }
+function insertSample(t){ text.value = t; updateChars(); }
+function apply(m,v,f,i){ model.value=m; voice.value=v; format.value=f; instr.value=i||''; metaModel.textContent=m; metaVoice.textContent=v; }
+text.addEventListener('input', updateChars); function updateChars(){ chars.textContent = `${text.value.length} / 3000`; }
+
+/* History */
+function addHistory(entry){ const d = document.createElement('div'); d.innerHTML = `<div style="display:flex;justify-content:space-between"><div style="font-size:13px">${entry}</div><div style="color:var(--muted);font-size:12px">${new Date().toLocaleTimeString()}</div></div>`; historyEl.prepend(d); }
+clearHistory.addEventListener('click', ()=> historyEl.innerHTML='');
+
+/* Convert */
+btnConvert.addEventListener('click', async ()=>{
+  const t = text.value.trim(); if(!t){ setStatus('Please enter text',true); return; }
+  if(t.length>3000){ setStatus('Text too long (max 3000)',true); return; }
+  btnConvert.disabled = true; setStatus('Generating audio...');
+  try{
+    const opts = { provider: "openai", model: model.value, voice: voice.value, response_format: format.value };
+    if(instr.value.trim()) opts.instructions = instr.value.trim();
+    const audio = await puter.ai.txt2speech(t, opts);
+    if(!audio) throw new Error('No audio returned');
+    audio.controls = true; audio.preload='auto'; audio.volume = 1.0;
+    audioWrap.innerHTML = ''; audioWrap.appendChild(audio);
+    lastAudio = audio; lastUrl = audio.src;
+    playBtn.disabled = false; downloadBtn.disabled = false; stopBtn.disabled = false;
+    setStatus('Playback ready — click Play or it may autoplay depending on your browser.');
+    addHistory(`${model.value} • ${voice.value} • ${format.value}`);
+    usage[model.value] = (usage[model.value]||0)+1; drawChart();
+    metaModel.textContent = model.value; metaVoice.textContent = voice.value;
+    try{ await audio.play(); setStatus('Playing...'); }catch(e){}
+  }catch(err){
+    console.error(err); setStatus('Error: '+(err.message||err), true);
+  }finally{ btnConvert.disabled = false; }
+});
+
+/* play / stop / download */
+playBtn.addEventListener('click', async ()=>{
+  if(!lastAudio){ setStatus('No audio to play', true); return; }
+  try{ await lastAudio.play(); setStatus('Playing'); }catch(e){ setStatus('Unable to autoplay — interact with the audio element.', true); }
+});
+stopBtn.addEventListener('click', ()=>{ if(lastAudio){ lastAudio.pause(); lastAudio.currentTime=0; setStatus('Stopped'); } });
+downloadBtn.addEventListener('click', async ()=>{
+  if(!lastUrl){ setStatus('No audio to download', true); return; }
+  setStatus('Preparing download...');
+  try{
+    const res = await fetch(lastUrl); const blob = await res.blob();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `tts-${Date.now()}.${format.value||'mp3'}`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 30000);
+    setStatus('Download triggered');
+  }catch(e){ setStatus('Download failed: '+e.message, true); }
+});
+
+/* PWA: manifest blob & service worker registration */
+(async function setupPWA(){
+  // create a simple svg icon dataURL
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512'><rect width='100%' height='100%' rx='64' fill='#60a5fa'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='220' fill='#042826' font-family='Inter'>🔊</text></svg>`;
+  const iconData = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+
+  // create manifest blob and add link
+  const manifest = {
+    name: "Modern TTS Studio",
+    short_name: "TTS Studio",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#041028",
+    theme_color: "#60a5fa",
+    icons: [{ src: iconData, sizes: "512x512", type: "image/svg+xml" }]
+  };
+  const mBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const mURL = URL.createObjectURL(mBlob);
+  let link = document.createElement('link'); link.rel='manifest'; link.href=mURL; document.head.appendChild(link);
+
+  // service worker script as blob
+  const swCode = `
+    const CACHE='tts-shell-v1';
+    const ASSETS=[location.pathname, location.origin];
+    self.addEventListener('install', e=>{ self.skipWaiting(); e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))); });
+    self.addEventListener('activate', e=>{ e.waitUntil(self.clients.claim()); });
+    self.addEventListener('fetch', event=>{
+      if(event.request.method !== 'GET') return;
+      if(event.request.mode === 'navigate'){
+        event.respondWith(caches.match(location.pathname).then(r=>r || fetch(event.request).catch(()=>new Response('<h1>Offline</h1><p>This app is available offline.</p>','text/html'))));
+        return;
+      }
+      event.respondWith(caches.match(event.request).then(r=>r || fetch(event.request).catch(()=>r)));
+    });
+  `;
+  try{
+    const swBlob = new Blob([swCode], {type:'application/javascript'});
+    const swUrl = URL.createObjectURL(swBlob);
+    const reg = await navigator.serviceWorker.register(swUrl);
+    console.log('SW registered:', reg);
+  }catch(err){ console.warn('SW failed:', err); }
+
+  // install prompt
+  window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); installPromptEvent = e; showInstallButton(true); });
+  function showInstallButton(show){
+    const area = document.getElementById('installArea');
+    area.innerHTML = '';
+    if(show){
+      const b = document.createElement('button'); b.className='btn-ghost'; b.textContent='📥 Install App'; b.onclick = async ()=>{
+        if(!installPromptEvent) return;
+        installPromptEvent.prompt();
+        const res = await installPromptEvent.userChoice;
+        installPromptEvent = null; showInstallButton(false);
+      };
+      area.appendChild(b);
+    }
+  }
+  // manual install button
+  document.getElementById('btnInstall').addEventListener('click', async ()=>{
+    if(installPromptEvent){ installPromptEvent.prompt(); const choice = await installPromptEvent.userChoice; installPromptEvent=null; }
+    else alert('Install is available via browser UI (Chrome/Edge) or when served over HTTPS / localhost.');
+  });
+})();
+
+/* safe note: PWA works on HTTPS or localhost; service worker not available on file:// */
+document.getElementById('btnAbout').addEventListener('click', ()=> alert('Modern TTS Studio — demo using Puter.js + OpenAI TTS. User-pays model; check documentation for models & voices.'));
+
+/* Ensure mermaid rerenders if needed after dynamic content */
+setTimeout(()=>{ try{ mermaid.init(undefined, document.querySelectorAll('.mermaid')); }catch(e){} }, 800);
+
+/* Accessibility: keyboard shortcut to convert (Ctrl+Enter) */
+text.addEventListener('keydown',(e)=>{ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ btnConvert.click(); } });
+</script>
+</body>
+</html>
