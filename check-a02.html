@@ -166,7 +166,7 @@
             </div>
 
             <div style="margin-top:12px" class="note">
-                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
+                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.herokuapp.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด).
             </div>
         </div>
 
@@ -628,7 +628,7 @@
         });
 
         // Render initial tags
-        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.herokuapp.com' : 'disabled'}</strong>`;
         rateTag.innerHTML = 'Rate limit: 20 req/min';
 
         // set initial last info
