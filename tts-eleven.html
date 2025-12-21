@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Text-to-Speech — Puter + ElevenLabs</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#4f46e5;
+      --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.03);
+      --success:#10b981;
+      --danger:#ef4444;
+      --radius:14px;
+      --max-width:980px;
+      color-scheme: dark;
+    }
+    /* Page layout */
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(79,70,229,0.12), transparent),
+                  radial-gradient(800px 400px at 90% 90%, rgba(16,185,129,0.06), transparent),
+                  var(--bg);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:36px;
+    }
+
+    .container{
+      width:100%;
+      max-width:var(--max-width);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:18px;
+      padding:28px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      border: 1px solid rgba(255,255,255,0.03);
+      display:grid;
+      grid-template-columns: 1fr 380px;
+      gap:20px;
+    }
+
+    /* For small screens, stack */
+    @media (max-width:920px){
+      .container{ grid-template-columns: 1fr; padding:20px; }
+    }
+
+    header{
+      grid-column: 1 / -1;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      margin-bottom:6px;
+    }
+    .logo{
+      width:56px; height:56px;
+      border-radius:12px;
+      background: linear-gradient(135deg, var(--accent), #06b6d4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      font-weight:700;
+      font-size:18px;
+      box-shadow: 0 6px 18px rgba(79,70,229,0.18);
+    }
+    h1{ font-size:20px; margin:0; color:#e6eef8; }
+    p.lead{ margin:0; color:var(--muted); font-size:13px; }
+
+    /* Left - main controls */
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      border-radius:var(--radius);
+      padding:18px;
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+    label { display:block; color:var(--muted); font-size:13px; margin-bottom:8px; }
+    textarea{
+      width:100%;
+      min-height:180px;
+      resize:vertical;
+      background:var(--glass);
+      border: 1px solid rgba(255,255,255,0.03);
+      color:#e6eef8;
+      padding:14px;
+      border-radius:10px;
+      font-size:15px;
+      outline:none;
+      transition: box-shadow .15s;
+    }
+    textarea:focus{ box-shadow: 0 8px 30px rgba(79,70,229,0.12); border-color: rgba(79,70,229,0.22); }
+
+    .row{
+      display:flex;
+      gap:12px;
+      margin-top:12px;
+      align-items:center;
+    }
+    .col{ flex:1; }
+    select, input[type="text"]{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      background:var(--glass);
+      border: 1px solid rgba(255,255,255,0.03);
+      color:#e6eef8;
+      outline:none;
+    }
+    select:focus, input[type="text"]:focus{ box-shadow: 0 8px 30px rgba(79,70,229,0.08); border-color: rgba(79,70,229,0.18); }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
+      align-items:center;
+    }
+    button{
+      padding:10px 14px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      color:white;
+      background:linear-gradient(90deg,var(--accent),#06b6d4);
+      box-shadow: 0 8px 24px rgba(79,70,229,0.14);
+    }
+    button.ghost{
+      background:transparent;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: #e6eef8;
+      box-shadow:none;
+    }
+    button.secondary{
+      background: linear-gradient(90deg,#334155, #0f1724);
+      box-shadow:none;
+    }
+    .btn-danger{
+      background: linear-gradient(90deg,var(--danger), #ef6a6a);
+    }
+
+    /* Right - preview & options */
+    .preview{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+      border-radius:var(--radius);
+      padding:18px;
+      border: 1px solid rgba(255,255,255,0.02);
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:220px;
+    }
+    .card-title{
+      color:#e6eef8; font-weight:700; font-size:14px;
+    }
+    .meta{ color:var(--muted); font-size:13px; margin-bottom:6px; }
+
+    .audio-wrap{
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+      border-radius:12px;
+      padding:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    audio{ width:100%; outline:none; }
+
+    .status{
+      font-size:13px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px; background:var(--muted); display:inline-block;
+    }
+    .dot.busy{ background:linear-gradient(90deg,var(--accent), #06b6d4); box-shadow: 0 6px 18px rgba(79,70,229,0.14); }
+
+    /* small helper */
+    .muted{ color:var(--muted); font-size:13px; }
+    .small{ font-size:12px; color:var(--muted); }
+
+    footer{
+      grid-column:1 / -1;
+      margin-top:6px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* spinner */
+    .spinner{
+      width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,0.06);
+      border-top-color:var(--accent); animation:spin 1s linear infinite;
+    }
+    @keyframes spin{ to{ transform:rotate(360deg); } }
+
+    /* fancy hint */
+    .hint{
+      margin-top:10px;
+      padding:10px;
+      border-radius:10px;
+      background: linear-gradient(90deg, rgba(79,70,229,0.06), rgba(6,182,212,0.03));
+      color:var(--muted);
+      font-size:13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application">
+    <header>
+      <div class="logo">TTS</div>
+      <div>
+        <h1>Text-to-Speech — Puter.js + ElevenLabs</h1>
+        <p class="lead">แปลงข้อความเป็นเสียง (ไม่มี API key จำเป็น — ใช้ Puter.js ตามตัวอย่าง)</p>
+      </div>
+    </header>
+
+    <!-- Left: Main -->
+    <section class="panel" aria-labelledby="main-title">
+      <label for="text-input" id="main-title">ข้อความที่จะแปลงเป็นเสียง</label>
+      <textarea id="text-input" placeholder="พิมพ์ข้อความของคุณที่นี่... (รองรับหลายบรรทัด)"></textarea>
+
+      <div class="row" style="margin-top:12px;">
+        <div class="col">
+          <label for="voice-select">เลือกเสียง (Voice ID)</label>
+          <select id="voice-select" aria-label="เลือกเสียง">
+            <!-- ตัวอย่าง: Rachel public sample -->
+            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (ตัวอย่างสาธารณะ)</option>
+            <option value="custom">ใช้ Voice ID ของคุณ (พิมพ์ด้านล่าง)</option>
+          </select>
+        </div>
+        <div class="col">
+          <label for="model-select">เลือกโมเดล</label>
+          <select id="model-select" aria-label="เลือกโมเดล">
+            <option value="eleven_multilingual_v2">eleven_multilingual_v2 (คุณภาพสูง)</option>
+            <option value="eleven_flash_v2_5">eleven_flash_v2_5 (เร็ว)</option>
+            <option value="eleven_turbo_v2_5">eleven_turbo_v2_5 (เร็วมาก)</option>
+            <option value="eleven_v3">eleven_v3 (รุ่นล่าสุด)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div class="col">
+          <label for="voice-id-input">Voice ID (กรณีเลือก "ใช้ Voice ID ของคุณ")</label>
+          <input id="voice-id-input" type="text" placeholder="วางหรือพิมพ์ Voice ID ที่นี่ (เช่น: 21m00Tcm4TlvDq8ikWAM)" />
+        </div>
+        <div style="width:170px;">
+          <label for="format-select">Output format</label>
+          <select id="format-select" aria-label="Output format">
+            <option value="mp3_44100_128">MP3 44.1kHz 128kbps</option>
+            <option value="mp3_44100_192">MP3 44.1kHz 192kbps</option>
+            <option value="pcm_16000">PCM 16kHz</option>
+            <option value="pcm_22050">PCM 22.05kHz</option>
+            <option value="pcm_24000">PCM 24kHz</option>
+            <option value="ulaw_8000">uLaw 8kHz</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="speak-btn">แปลงและเล่น</button>
+        <button id="generate-btn" class="ghost">สร้างไฟล์ (ไม่เล่น)</button>
+        <button id="stop-btn" class="secondary">หยุด</button>
+        <button id="download-btn" class="ghost" title="ดาวน์โหลดไฟล์เสียง" disabled>ดาวน์โหลด</button>
+      </div>
+
+      <div class="hint">
+        หมายเหตุ: หน้าเว็บนี้ใช้ Puter.js (โหลดจาก https://js.puter.com/v2/) เพื่อเรียกใช้งาน ElevenLabs แบบไม่ต้องมี API key ฝั่งผู้พัฒนา — ผู้ใช้แต่ละคนจะจ่ายค่าใช้จ่ายตามโมเดลของ Puter (user-pays model) ถ้ามีข้อผิดพลาดโปรดตรวจสอบคอนโซลเบราว์เซอร์
+      </div>
+    </section>
+
+    <!-- Right: Preview & status -->
+    <aside class="preview" aria-labelledby="preview-title">
+      <div>
+        <div class="card-title" id="preview-title">ตัวอย่างเสียง & สถานะ</div>
+        <div class="meta">ตรวจสอบการเล่นไฟล์ และดาวน์โหลด</div>
+      </div>
+
+      <div class="audio-wrap" id="audio-wrap">
+        <audio id="audio" controls></audio>
+      </div>
+
+      <div class="status" id="status-row">
+        <span class="dot" id="status-dot"></span>
+        <div id="status-text">ยังไม่ได้สร้างเสียง</div>
+      </div>
+
+      <div style="margin-top:auto;">
+        <div class="small">ตัวอย่างเสียงสาธิต (Voice ID: Rachel)</div>
+        <div style="height:8px"></div>
+        <div class="small muted">หมายเหตุ: หากเสียงไม่ออกให้ตรวจสอบการตั้งค่าเสียงของเครื่องและนโยบายเบราว์เซอร์ (autoplay) — กดปุ่มเล่นด้วยตนเอง</div>
+      </div>
+    </aside>
+
+    <footer>
+      <div>สร้างด้วย Puter.js (ElevenLabs) — ตัวอย่างจากเอกสาร</div>
+      <div class="small">เวอร์ชันต้นแบบ — ปรับแต่งได้ตามต้องการ</div>
+    </footer>
+  </div>
+
+  <script src="https://js.puter.com/v2/"></script>
+  <script>
+    // Elements
+    const textInput = document.getElementById('text-input');
+    const voiceSelect = document.getElementById('voice-select');
+    const voiceIdInput = document.getElementById('voice-id-input');
+    const modelSelect = document.getElementById('model-select');
+    const formatSelect = document.getElementById('format-select');
+
+    const speakBtn = document.getElementById('speak-btn');
+    const generateBtn = document.getElementById('generate-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const downloadBtn = document.getElementById('download-btn');
+
+    const audioEl = document.getElementById('audio');
+    const statusText = document.getElementById('status-text');
+    const statusDot = document.getElementById('status-dot');
+
+    let latestAudio = null; // will hold the Audio object returned by puter.ai.txt2speech
+
+    // Helpers to update UI status
+    function setStatus(text, busy=false, danger=false) {
+      statusText.textContent = text;
+      statusDot.className = 'dot' + (busy ? ' busy' : '');
+      if (danger) statusText.style.color = 'var(--danger)'; else statusText.style.color = '';
+    }
+
+    function enableControls(enabled=true) {
+      speakBtn.disabled = !enabled;
+      generateBtn.disabled = !enabled;
+      stopBtn.disabled = !enabled;
+    }
+
+    // When user chooses "custom", focus the input
+    voiceSelect.addEventListener('change', () => {
+      if (voiceSelect.value === 'custom') {
+        voiceIdInput.focus();
+      }
+    });
+
+    // Convert the Audio element src to a downloadable blob and trigger download
+    async function downloadAudioFromAudioElement(filename='speech.mp3') {
+      try {
+        const src = audioEl.src;
+        if (!src) throw new Error('ไม่มีแหล่งไฟล์เสียงให้ดาวน์โหลด');
+        // fetch resource (works for blob: and http(s):)
+        const resp = await fetch(src);
+        if (!resp.ok) throw new Error('ไม่สามารถดาวน์โหลดไฟล์ได้: ' + resp.status);
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert('ดาวน์โหลดล้มเหลว: ' + (err.message || err));
+      }
+    }
+
+    // Generate voice using Puter.js + ElevenLabs
+    async function generateSpeech({play=false} = {}) {
+      const text = textInput.value.trim();
+      if (!text) {
+        alert('กรุณาใส่ข้อความก่อนสั่งสร้างเสียง');
+        return;
+      }
+
+      // determine voice id
+      let voiceId = voiceSelect.value === 'custom' ? voiceIdInput.value.trim() : voiceSelect.value;
+      if (!voiceId) {
+        alert('กรุณาระบุ Voice ID (หรือตั้งเป็นเสียงตัวอย่าง)');
+        return;
+      }
+
+      const model = modelSelect.value;
+      const output_format = formatSelect.value;
+
+      try {
+        enableControls(false);
+        setStatus('กำลังสร้างเสียง... โปรดรอสักครู่', true);
+        // Call puter.ai.txt2speech as in the tutorial
+        // provider: "elevenlabs", voice: voiceId, model: model, output_format: output_format
+        const audio = await puter.ai.txt2speech(text, {
+          provider: "elevenlabs",
+          voice: voiceId,
+          model: model,
+          output_format: output_format
+        });
+
+        // audio is typically an HTMLMediaElement-like object per Puter example
+        latestAudio = audio;
+
+        // Attach to our audio element for controls and download
+        // Some libraries return Audio object, some return URL; handle both
+        if (typeof audio === 'string') {
+          audioEl.src = audio;
+          audioEl.load();
+        } else if (audio instanceof HTMLAudioElement || audio instanceof HTMLMediaElement) {
+          // If audio is an audio element, copy its src
+          audioEl.src = audio.src || audio.currentSrc || '';
+        } else if (audio && typeof audio.toString === 'function') {
+          // Example in tutorial: document.getElementById('convertedAudio').src = audio.toString();
+          audioEl.src = audio.toString();
+        } else {
+          console.warn('ไม่แน่ใจชนิดของ audio ที่ส่งกลับ', audio);
+        }
+
+        setStatus('สร้างเสียงเรียบร้อย', false);
+        downloadBtn.disabled = false;
+
+        if (play) {
+          try {
+            await audioEl.play();
+            setStatus('กำลังเล่นเสียง', false);
+          } catch (playErr) {
+            // Some browsers block autoplay; inform user to click play
+            console.warn('play blocked:', playErr);
+            setStatus('สร้างเสียงแล้ว — กดปุ่มเล่นด้านล่างเพื่อฟัง', false);
+          }
+        }
+      } catch (err) {
+        console.error('TTS error:', err);
+        setStatus('เกิดข้อผิดพลาด: ' + (err.message || err), false, true);
+        alert('เกิดข้อผิดพลาดขณะสร้างเสียง: ' + (err.message || err));
+      } finally {
+        enableControls(true);
+      }
+    }
+
+    // Buttons
+    speakBtn.addEventListener('click', (e) => generateSpeech({play:true}));
+    generateBtn.addEventListener('click', (e) => generateSpeech({play:false}));
+
+    stopBtn.addEventListener('click', () => {
+      try {
+        audioEl.pause();
+        audioEl.currentTime = 0;
+        setStatus('ถูกหยุด', false);
+      } catch (err) {
+        console.warn(err);
+      }
+    });
+
+    downloadBtn.addEventListener('click', async () => {
+      // try to determine file extension from selected format
+      const format = formatSelect.value;
+      let ext = 'mp3';
+      if (format.startsWith('pcm') || format === 'ulaw_8000') ext = 'wav';
+      const filename = `speech_${Date.now()}.${ext}`;
+      downloadBtn.disabled = true;
+      setStatus('กำลังเตรียมไฟล์สำหรับดาวน์โหลด...', true);
+      try {
+        await downloadAudioFromAudioElement(filename);
+        setStatus('ดาวน์โหลดเสร็จแล้ว', false);
+      } catch (err) {
+        setStatus('ดาวน์โหลดล้มเหลว', false, true);
+      } finally {
+        downloadBtn.disabled = false;
+      }
+    });
+
+    // When audio plays/pauses, update status
+    audioEl.addEventListener('play', () => setStatus('กำลังเล่นเสียง', false));
+    audioEl.addEventListener('pause', () => setStatus('หยุดการเล่น', false));
+    audioEl.addEventListener('ended', () => setStatus('เล่นจบแล้ว', false));
+
+    // Set some sample text by default
+    textInput.value = "สวัสดีครับ นี่คือการสาธิตการแปลงข้อความเป็นเสียง ด้วย ElevenLabs ผ่าน Puter.js";
+
+    // initial status
+    setStatus('พร้อมใช้งาน — ใส่ข้อความแล้วกด "แปลงและเล่น"', false);
+
+    // Small safety: if Puter.js isn't loaded, show helpful message
+    if (typeof puter === 'undefined') {
+      setStatus('ไม่พบ Puter.js: ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ URL https://js.puter.com/v2/', false, true);
+      console.error('Puter.js ไม่ได้โหลด — ตรวจสอบ https://js.puter.com/v2/');
+    }
+  </script>
+</body>
+</html>
