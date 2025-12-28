@@ -128,7 +128,7 @@
                 <input type="text" id="fullUrl" name="fullUrl" placeholder="http://xxxx.xxx:8080/player_api.php?username=xxx&password=xxx" required aria-required="true" />
 
                 <div class="meta" aria-hidden="false">
-                    <div class="tag" id="proxyTag">Using proxy: <strong style="margin-left:6px">cors-anywhere.com</strong></div>
+                    <div class="tag" id="proxyTag">Using proxy: <strong style="margin-left:6px">https://api.codetabs.com</strong></div>
                     <div class="tag" id="rateTag" title="Rate limit per website">Rate limit: 20 req/min</div>
                 </div>
 
@@ -166,7 +166,7 @@
             </div>
 
             <div style="margin-top:12px" class="note">
-                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ cors-anywhere.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด). [(CORS Anywhere)](https://cors-anywhere.com/)
+                หมายเหตุ: โค้ดยังคงใช้ CORS proxy ของ api.codetabs.com สำหรับการเรียกข้ามต้นทาง (rate limit ของ instance นี้อาจมีการจำกัด).
             </div>
         </div>
 
@@ -260,7 +260,7 @@
 
         // Proxy usage flag (UI only toggles whether to prepend proxy)
         let useProxy = true;
-        const PROXY_BASE = 'https://cors-anywhere.com/';
+        const PROXY_BASE = 'https://api.codetabs.com/v1/proxy?quest=';
 
         // Prefill from query param if present (keeps original behavior)
         function getQueryParam(param) {
@@ -462,7 +462,7 @@
         // Toggle proxy usage
         btnToggleProxy.addEventListener('click', () => {
             useProxy = !useProxy;
-            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+            proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'api.codetabs.com' : 'disabled'}</strong>`;
         });
 
         // Save preset
@@ -515,7 +515,7 @@
                 else if(!urlObj.searchParams.get('action')) urlObj.searchParams.set('action', 'get_info');
 
                 const final = urlObj.toString();
-                return useProxy ? (PROXY_BASE + final) : final;
+                return useProxy ? (PROXY_BASE + encodeURIComponent(final)) : final;
             }catch(e){
                 return null;
             }
@@ -559,7 +559,7 @@
 
             // Construct final URL and perform fetch
             const targetUrl = urlObj.toString();
-            const proxyUrl = useProxy ? (PROXY_BASE + targetUrl) : targetUrl;
+            const proxyUrl = useProxy ? (PROXY_BASE + encodeURIComponent(targetUrl)) : targetUrl;
 
             // Update UI
             resultElem.textContent = 'Loading...';
@@ -628,7 +628,7 @@
         });
 
         // Render initial tags
-        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'cors-anywhere.com' : 'disabled'}</strong>`;
+        proxyTag.innerHTML = `Using proxy: <strong style="margin-left:6px">${useProxy ? 'api.codetabs.com' : 'disabled'}</strong>`;
         rateTag.innerHTML = 'Rate limit: 20 req/min';
 
         // set initial last info
