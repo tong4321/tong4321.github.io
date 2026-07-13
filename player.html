@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="referrer" content="unsafe-url">
     <title>M3U8 Player</title>
     <style>
         * {
@@ -73,6 +73,7 @@
         const statusEl = document.getElementById('status');
 
         const streamUrl = 'https://godlivetv.io/madoball/716/playlist.m3u8';
+        const refererUrl = 'https://madoball.com/';
 
         function setStatus(msg) {
             statusEl.textContent = msg;
@@ -85,13 +86,70 @@
             setStatus('Error');
         }
 
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                debug: false,
-                xhrSetup: function (xhr, url) {
-                    // Ensure referer is set for all segment requests
-                    xhr.withCredentials = false;
+        // Custom loader that sends Referer header on every request
+        class RefererLoader {
+            constructor(config) {
+                this.config = config;
+            }
+
+            load(context, config, callbacks) {
+                const url = context.url;
+                const fetchOptions = {
+                    method: 'GET',
+                    mode: 'cors',
+                    credentials: 'omit',
+                    headers: {
+                        'Referer': refererUrl
+                    }
+                };
+
+                // For segment loading, we can add Range header for seeking
+                if (context.rangeEnd) {
+                    fetchOptions.headers['Range'] = 'bytes=' + context.rangeStart + '-' + context.rangeEnd;
                 }
+
+                fetch(url, fetchOptions)
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+                        }
+                        return response.arrayBuffer();
+                    })
+                    .then(function (data) {
+                        var stats = {
+                            trequest: performance.now(),
+                            tfirst: performance.now(),
+                            tload: performance.now(),
+                            loaded: data.byteLength,
+                            total: data.byteLength
+                        };
+                        var response = {
+                            url: url,
+                            data: data
+                        };
+                        callbacks.onSuccess(response, stats, context, null);
+                    })
+                    .catch(function (err) {
+                        var errorData = {
+                            type: Hls.ErrorTypes.NETWORK_ERROR,
+                            details: Hls.ErrorDetails.FRAG_LOAD_ERROR,
+                            fatal: false,
+                            url: url,
+                            reason: err.message
+                        };
+                        callbacks.onError(errorData, context, null, err);
+                    });
+            }
+
+            abort() { }
+
+            destroy() { }
+        }
+
+        if (Hls.isSupported()) {
+            var hls = new Hls({
+                debug: false,
+                loader: RefererLoader
             });
 
             hls.loadSource(streamUrl);
@@ -101,7 +159,6 @@
                 setStatus('Stream loaded. Click play to start.');
                 loadingEl.style.display = 'none';
                 video.play().catch(function () {
-                    // Autoplay blocked, user must click play
                     setStatus('Click play to start streaming.');
                 });
             });
@@ -110,7 +167,7 @@
                 if (data.fatal) {
                     switch (data.type) {
                         case Hls.ErrorTypes.NETWORK_ERROR:
-                            setError('Network error. Cannot load stream. Server may require specific referer.');
+                            setError('Network error: ' + (data.reason || 'Cannot load stream. Server may require specific referer.'));
                             break;
                         case Hls.ErrorTypes.MEDIA_ERROR:
                             setError('Media error. Stream format may not be supported.');
@@ -121,7 +178,7 @@
                     }
                     hls.destroy();
                 } else {
-                    setStatus('Recovering from error: ' + (data.details || 'Unknown'));
+                    setStatus('Recovering from error: ' + (data.details || data.reason || 'Unknown'));
                 }
             });
 
@@ -129,15 +186,26 @@
                 setStatus('Media attached, loading stream...');
             });
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Native HLS support (Safari)
-            video.src = streamUrl;
-            video.addEventListener('loadedmetadata', function () {
-                setStatus('Stream loaded. Click play to start.');
-                loadingEl.style.display = 'none';
-            });
-            video.addEventListener('error', function () {
-                setError('Cannot load stream. Safari native HLS failed.');
-            });
+            // Native HLS support (Safari) - try using fetch + blob for referer
+            setStatus('Safari detected. Attempting with proxy...');
+            fetch(streamUrl, {
+                headers: { 'Referer': refererUrl }
+            })
+                .then(function (r) { return r.blob(); })
+                .then(function (blob) {
+                    var url = URL.createObjectURL(blob);
+                    video.src = url;
+                    video.addEventListener('loadedmetadata', function () {
+                        setStatus('Stream loaded. Click play to start.');
+                        loadingEl.style.display = 'none';
+                    });
+                    video.addEventListener('error', function () {
+                        setError('Cannot load stream. Safari native HLS failed.');
+                    });
+                })
+                .catch(function () {
+                    setError('Cannot load stream. Safari native HLS failed.');
+                });
         } else {
             setError('HLS is not supported in this browser.');
         }
