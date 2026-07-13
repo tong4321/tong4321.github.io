@@ -1,31 +1,147 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-<meta charset="utf-8">
-<title>Player</title>
-<link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>M3U8 Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            padding: 10px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .info {
+            color: #888;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .error {
+            color: #ff4444;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .loading {
+            color: #fff;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+    </style>
 </head>
+
 <body>
-<div style="text-align:center;padding:20px;font-family:sans-serif">
-  <h2>HLS Player</h2>
-  <video id="player" class="video-js vjs-default-skin" controls autoplay width="1280" height="720"></video>
-  <p style="margin-top:10px;color:#666">URL: https://godlivetv.io/madoball/716/playlist.m3u8</p>
-</div>
-<script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>
-<script>
-videojs('player', {
-  html5: {
-    hls: {
-      overrideNative: true
-    },
-    nativeAudioTracks: false,
-    nativeVideoTracks: false
-  },
-  sources: [{
-    src: 'https://godlivetv.io/madoball/716/playlist.m3u8',
-    type: 'application/x-mpegURL'
-  }]
-});
-</script>
+    <div class="container">
+        <video id="video" controls playsinline></video>
+        <div class="loading" id="loading">Loading stream...</div>
+        <div class="error" id="error"></div>
+        <div class="info" id="status">Initializing player...</div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        const video = document.getElementById('video');
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const statusEl = document.getElementById('status');
+
+        const streamUrl = 'https://godlivetv.io/madoball/716/playlist.m3u8';
+
+        function setStatus(msg) {
+            statusEl.textContent = msg;
+        }
+
+        function setError(msg) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+            loadingEl.style.display = 'none';
+            setStatus('Error');
+        }
+
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                debug: false,
+                xhrSetup: function (xhr, url) {
+                    // Ensure referer is set for all segment requests
+                    xhr.withCredentials = false;
+                }
+            });
+
+            hls.loadSource(streamUrl);
+            hls.attachMedia(video);
+
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                setStatus('Stream loaded. Click play to start.');
+                loadingEl.style.display = 'none';
+                video.play().catch(function () {
+                    // Autoplay blocked, user must click play
+                    setStatus('Click play to start streaming.');
+                });
+            });
+
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            setError('Network error. Cannot load stream. Server may require specific referer.');
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            setError('Media error. Stream format may not be supported.');
+                            break;
+                        default:
+                            setError('Fatal error: ' + (data.details || 'Unknown'));
+                            break;
+                    }
+                    hls.destroy();
+                } else {
+                    setStatus('Recovering from error: ' + (data.details || 'Unknown'));
+                }
+            });
+
+            hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+                setStatus('Media attached, loading stream...');
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            // Native HLS support (Safari)
+            video.src = streamUrl;
+            video.addEventListener('loadedmetadata', function () {
+                setStatus('Stream loaded. Click play to start.');
+                loadingEl.style.display = 'none';
+            });
+            video.addEventListener('error', function () {
+                setError('Cannot load stream. Safari native HLS failed.');
+            });
+        } else {
+            setError('HLS is not supported in this browser.');
+        }
+    </script>
 </body>
+
 </html>
