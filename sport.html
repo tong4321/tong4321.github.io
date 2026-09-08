@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สตรีมมิ่งช่องกีฬา | Play Sports Channels</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            color: #4fc3f7;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .search-box {
+            flex-grow: 1;
+            margin-right: 20px;
+        }
+        
+        .search-box input {
+            padding: 12px 20px;
+            width: 100%;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .view-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .view-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-btn.active {
+            background: #4fc3f7;
+            color: #0f2027;
+        }
+        
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 50px);
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .channel-item {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+        }
+        
+        .channel-item:hover {
+            transform: scale(1.2);
+            z-index: 10;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+        }
+        
+        .channel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .channel-tooltip {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+            font-size: 0.8rem;
+        }
+        
+        .channel-item:hover .channel-tooltip {
+            opacity: 1;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .thai-flag {
+            display: inline-block;
+            margin: 0 2px;
+            font-size: 0.8rem;
+            vertical-align: middle;
+        }
+        
+        /* สไตล์สำหรับการแสดงผลแบบการ์ด */
+        .channels-grid.card-view {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .channels-grid.card-view .channel-item {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16/9;
+        }
+        
+        .channels-grid.card-view .channel-item img {
+            height: 150px;
+        }
+        
+        .channel-info {
+            padding: 10px;
+            display: none;
+        }
+        
+        .channels-grid.card-view .channel-info {
+            display: block;
+        }
+        
+        .channels-grid.card-view .channel-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .channels-grid.card-view .channel-tooltip {
+            display: none;
+        }
+        
+        .channel-title {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        .category-title {
+            grid-column: 1 / -1;
+            font-size: 1.2rem;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #4fc3f7;
+            color: #4fc3f7;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        .instructions {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .github-info {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .github-info h3 {
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+        
+        .github-info code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-box {
+                margin-right: 0;
+                width: 100%;
+            }
+            
+            .channels-grid {
+                grid-template-columns: repeat(auto-fill, 50px);
+                gap: 10px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-play-circle"></i> สตรีมมิ่งช่องกีฬา</h1>
+            <p>ชมการถ่ายทอดสดกีฬาทุกประเภทจากทุกมุมโลก</p>
+        </header>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="ค้นหาช่องกีฬาที่คุณต้องการ...">
+            </div>
+            
+            <div class="view-options">
+                <button class="view-btn active" id="gridView"><i class="fas fa-th"></i></button>
+                <button class="view-btn" id="cardView"><i class="fas fa-th-large"></i></button>
+            </div>
+        </div>
+        
+        <div class="channels-grid" id="channelsContainer">
+            <!-- ช่องสตรีมมิ่งจะถูกเพิ่มที่นี่โดย JavaScript -->
+        </div>
+        
+        <div class="instructions">
+            <p><strong>คำแนะนำ:</strong> คลิกที่โลโก้ช่องเพื่อเปิดใน WisePlay หรือคลิกขวาเพื่อคัดลอกลิงก์สตรีม</p>
+        </div>
+        
+        <div class="github-info">
+            <h3>คำแนะนำการใช้งานกับ GitHub Pages</h3>
+            <p>1. สร้าง repository ใหม่บน GitHub</p>
+            <p>2. อัพโหลดไฟล์นี้เป็น <code>index.html</code></p>
+            <p>3. ไปที่ Settings → Pages → แบรนช์เลือก <code>main</code> หรือ <code>master</code> → Save</p>
+            <p>4. รอสักครู่แล้วเว็บของคุณจะพร้อมใช้งานที่ <code>https://[username].github.io/[repository-name]</code></p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Sports Streaming Service | All rights reserved</p>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        คัดลอก URL เรียบร้อยแล้ว
+    </div>
+
+    <script>
+        // ข้อมูลช่องสตรีมมิ่ง
+        const channels = [
+            {
+                name: "Play Sports1🇹🇭",
+                image: "https://cdn.imgchest.com/files/7mmc96wezv7.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL001/HLS/TL001.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports2🇹🇭",
+                image: "https://cdn.imgchest.com/files/739cxjndpw7.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL002/HLS/TL002.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports3🇹🇭",
+                image: "https://cdn.imgchest.com/files/7w6c23mxeoy.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL003/HLS/TL003.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports4🇹🇭",
+                image: "https://cdn.imgchest.com/files/ye3c2qp5xb4.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL004/HLS/TL004.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports5🇹🇭",
+                image: "https://cdn.imgchest.com/files/4z9cvz8law7.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL005/HLS/TL005.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports6🇹🇭",
+                image: "https://cdn.imgchest.com/files/4gdcxjva2m4.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL006/HLS/TL006.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports7",
+                image: "https://cdn.imgchest.com/files/45xcv2kjz27.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL007/HLS/TL007.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Play Sports8",
+                image: "https://cdn.imgchest.com/files/4apc5pd2ze4.png",
+                url: "https://49-231-34-108-rewriter.ais-vidnt.com/ais/play/anevia/live/eds/TL008/HLS/TL008.m3u8",
+                referer: "https://olympic-embed.ais-vidnt.com",
+                userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "SPOTV-A🇹🇭",
+                image: "https://cdn.imgchest.com/files/4jdcve2v2l4.png",
+                url: "https://cdn1.googlecdnforstreaming.live/live/spotv/chunks.m3u8",
+                referer: "https://warpdooball.net/",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "SPOTV-B🇹🇭",
+                image: "https://cdn.imgchest.com/files/4jdcve2v2l4.png",
+                url: "https://dolive.thaim3u.com/doolive4k-tv/true-spotv-1/chunks.m3u8",
+                referer: "https://doolive4k.tv/",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "SPOTV2-A🇹🇭",
+                image: "https://cdn.imgchest.com/files/yrgcnjbnb24.png",
+                url: "https://cdn1.googlecdnforstreaming.live/live/spotv2/chunks.m3u8",
+                referer: "https://warpdooball.net/",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "SPOTV2-B🇹🇭",
+                image: "https://cdn.imgchest.com/files/yrgcnjbnb24.png",
+                url: "https://dolive.thaim3u.com/doolive4k-tv/true-spotv-2/chunks.m3u8",
+                referer: "https://doolive4k.tv/",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Golf Channel🇹🇭",
+                image: "https://cdn.imgchest.com/files/7mmc96qoox7.png",
+                url: "https://dookeela2.live/live-tv/golfchannel",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Golf Channel🇹🇭",
+                image: "https://cdn.imgchest.com/files/7mmc96qoox7.png",
+                url: "https://ball67.com/channels/golfchannelthailand",
+                referer: "https://ball67.com/",
+                userAgent: "exo_player",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "VolleyBall 1",
+                image: "https://cdn.imgchest.com/files/yxkczwrx9d7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=634&tv=FIVBVolleyball1",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "VolleyBall 2",
+                image: "https://cdn.imgchest.com/files/49zc23wk8wy.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=635&tv=FIVBVolleyball2",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "VolleyBall 3",
+                image: "https://cdn.imgchest.com/files/4nec8qko6a4.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=636&tv=FIVBVolleyball3",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "VolleyBall 4",
+                image: "https://cdn.imgchest.com/files/7bwckpxjno7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=637&tv=FIVBVolleyball4",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Sports1",
+                image: "https://cdn.imgchest.com/files/yvdcwkzkeby.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=419&tv=SportsOne",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "MUTV",
+                image: "https://cdn.imgchest.com/files/739cxjbgrw7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=84&tv=MUTV",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "LFC TV",
+                image: "https://cdn.imgchest.com/files/7mmc96q3xv7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=130&tv=LFCTV",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Real Madrid TV",
+                image: "https://cdn.imgchest.com/files/ye3c2qw8nb4.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=632&tv=RealMadridTV",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Astro Football🇲🇾",
+                image: "https://cdn.imgchest.com/files/yvdcwkz5lay.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=534&tv=AstroFootball",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Astro Premier1🇲🇾",
+                image: "https://cdn.imgchest.com/files/yxkczwv6ln7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=537&tv=AstroPremierLeague",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Astro Premier2🇲🇾",
+                image: "https://cdn.imgchest.com/files/49zc23eq5ky.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=536&tv=AstroPremierLeague2",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Fox Sports 1🇺🇸",
+                image: "https://cdn.imgchest.com/files/7bwckp3p2m7.png",
+                url: "https://fl4.moveonjoy.com/FOX_Sports_1/index.m3u8",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Fox Sports 1🇺🇸",
+                image: "https://cdn.imgchest.com/files/7bwckp3p2m7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=21&tv=FOXSports1USA",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Fox Sports 2🇺🇸",
+                image: "https://cdn.imgchest.com/files/7pjcq2b2kg7.png",
+                url: "http://23.237.104.106:8080/USA_FS2/index.m3u8",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Fox Sports 2🇺🇸",
+                image: "https://cdn.imgchest.com/files/7pjcq2b2kg7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=138&tv=FOXSports2USA",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Eurosport",
+                image: "https://cdn.imgchest.com/files/7pjcq2b2nn7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=604&tv=Eurosport",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Eurosport1",
+                image: "https://cdn.imgchest.com/files/7kzcak9kpd7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=332&tv=Eurosport1|Spain",
+                playInNatPlayer: "true"
+            },
+            {
+                name: "Eurosport2",
+                image: "https://cdn.imgchest.com/files/y2pcke3eqp7.png",
+                url: "https://goal-th.com/ช่องรายการทีวี/?id=333&tv=Eurosport2|Spain",
+                playInNatPlayer: "true"
+            }
+        ];
+
+        // เรนเดอร์ช่องสตรีมมิ่ง
+        function renderChannels(channelsArray, viewMode = 'grid') {
+            const container = document.getElementById('channelsContainer');
+            container.innerHTML = '';
+            
+            // ตั้งค่า class ตามโหมดการแสดงผล
+            if (viewMode === 'card') {
+                container.classList.add('card-view');
+            } else {
+                container.classList.remove('card-view');
+            }
+            
+            // กลุ่มช่องตามประเภท
+            const categories = {
+                'ไทย': channelsArray.filter(c => c.name.includes('🇹🇭') && !c.name.includes('SPOTV') && !c.name.includes('Golf')),
+                'SPOTV': channelsArray.filter(c => c.name.includes('SPOTV')),
+                'กอล์ฟ': channelsArray.filter(c => c.name.includes('Golf')),
+                'วอลเลย์บอล': channelsArray.filter(c => c.name.includes('VolleyBall')),
+                'ฟุตบอล': channelsArray.filter(c => c.name.includes('MUTV') || c.name.includes('LFC') || c.name.includes('Real Madrid') || c.name.includes('Astro')),
+                'ต่างประเทศ': channelsArray.filter(c => c.name.includes('Fox Sports') || c.name.includes('Eurosport') || c.name.includes('Sports1')),
+                'อื่นๆ': channelsArray.filter(c => !c.name.includes('🇹🇭') && !c.name.includes('SPOTV') && !c.name.includes('Golf') && !c.name.includes('VolleyBall') && 
+                    !c.name.includes('MUTV') && !c.name.includes('LFC') && !c.name.includes('Real Madrid') && !c.name.includes('Astro') && 
+                    !c.name.includes('Fox Sports') && !c.name.includes('Eurosport') && !c.name.includes('Sports1'))
+            };
+            
+            // เรนเดอร์ช่องตามหมวดหมู่
+            for (const [categoryName, categoryChannels] of Object.entries(categories)) {
+                if (categoryChannels.length > 0) {
+                    const categoryTitle = document.createElement('div');
+                    categoryTitle.className = 'category-title';
+                    categoryTitle.textContent = `${categoryName} (${categoryChannels.length} ช่อง)`;
+                    container.appendChild(categoryTitle);
+                    
+                    categoryChannels.forEach(channel => {
+                        const channelItem = document.createElement('div');
+                        channelItem.className = 'channel-item';
+                        
+                        if (viewMode === 'grid') {
+                            channelItem.innerHTML = `
+                                <img src="${channel.image}" alt="${channel.name}" onerror="this.src='https://via.placeholder.com/50?text=LOGO'">
+                                <div class="channel-tooltip">${channel.name}</div>
+                            `;
+                        } else {
+                            channelItem.innerHTML = `
+                                <img src="${channel.image}" alt="${channel.name}" onerror="this.src='https://via.placeholder.com/250x150?text=LOGO'">
+                                <div class="channel-info">
+                                    <div class="channel-title">${channel.name}</div>
+                                </div>
+                            `;
+                        }
+                        
+                        // คลิกเพื่อเปิดใน WisePlay
+                        channelItem.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            openInWisePlay(channel);
+                        });
+                        
+                        // คลิกขวาเพื่อคัดลอก URL
+                        channelItem.addEventListener('contextmenu', function(e) {
+                            e.preventDefault();
+                            copyToClipboard(channel.url);
+                            showNotification(`คัดลอก URL ของ ${channel.name} เรียบร้อยแล้ว`);
+                        });
+                        
+                        container.appendChild(channelItem);
+                    });
+                }
+            }
+        }
+        
+        // เปิดใน WisePlay โดยใช้รูปแบบ Intent
+        function openInWisePlay(channel) {
+            // สร้าง URL สำหรับ WisePlay ตามรูปแบบที่กำหนด
+            const intentUrl = `intent://${channel.url.replace(/https?:\/\//, '')}#Intent;package=com.wiseplay;S.referer=${encodeURIComponent(channel.referer || '')}&userAgent=exo_player;S.title=${encodeURIComponent(channel.name)};scheme=https;type=video/mp4;end`;
+            
+            // พยายามเปิดในแอพ WisePlay
+            window.location.href = intentUrl;
+            
+            // Fallback: ถ้าเปิดไม่ได้ให้คัดลอกลิงก์
+            setTimeout(function() {
+                showNotification(`หากไม่ได้เปิดใน WisePlay อัตโนมัติ กรุณาคลิกขวาที่ช่องและคัดลอก URL เพื่อเปิดใน WisePlay ด้วยตนเอง`);
+            }, 1000);
+        }
+        
+        // คัดลอกไปยังคลิปบอร์ด
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        
+        // แสดงการแจ้งเตือน
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(function() {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // การค้นหาช่อง
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredChannels = channels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+            const viewMode = document.getElementById('cardView').classList.contains('active') ? 'card' : 'grid';
+            renderChannels(filteredChannels, viewMode);
+        });
+        
+        // สลับมุมมอง
+        document.getElementById('gridView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('cardView').classList.remove('active');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredChannels = channels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+            renderChannels(filteredChannels, 'grid');
+        });
+        
+        document.getElementById('cardView').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('gridView').classList.remove('active');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filteredChannels = channels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm)
+            );
+            renderChannels(filteredChannels, 'card');
+        });
+        
+        // เรนเดอร์ช่องทั้งหมดเมื่อโหลดหน้า
+        document.addEventListener('DOMContentLoaded', function() {
+            renderChannels(channels, 'grid');
+        });
+    </script>
+</body>
+</html>
