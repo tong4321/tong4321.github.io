@@ -1,0 +1,1335 @@
+```html
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📺 IPTV Player Pro — สตรีมมิ่งออนไลน์</title>
+    <!-- CDN Links -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.10.0/dist/shaka-player.compiled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg: #0a0e14;
+            --panel: #131a23;
+            --card: #1b2430;
+            --card-hover: #222e3d;
+            --accent: #6c5ce7;
+            --accent2: #00cec9;
+            --accent3: #fdcb6e;
+            --text: #e6edf3;
+            --text-muted: #8b9bb0;
+            --border: #2a3442;
+            --sidebar-width: 330px;
+            --player-height: 56.25vw;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.5);
+            --transition: 0.25s cubic-bezier(.4,0,.2,1);
+            --mdi-size: 1.4rem;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--panel); }
+        ::-webkit-scrollbar-thumb { background: #3a4553; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4e5a6a; }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: var(--text);
+        }
+        .logo-area .mdi {
+            font-size: 2rem;
+            color: var(--accent);
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .clock {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: var(--card);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-icon {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+        .btn-icon:hover {
+            background: var(--card-hover);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        /* Main Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 5;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--panel);
+            z-index: 2;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 0 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+        .search-box:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108,92,231,0.2);
+        }
+        .search-box .mdi {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            padding: 10px 0;
+            width: 100%;
+            font-family: 'Prompt', sans-serif;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 6px 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .filter-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        .channel-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .channel-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            position: relative;
+        }
+        .channel-item:hover {
+            background: var(--card-hover);
+            border-color: var(--accent);
+            transform: translateX(2px);
+        }
+        .channel-item.active {
+            background: var(--card-hover);
+            border-color: var(--accent);
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+        .channel-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #333;
+            flex-shrink: 0;
+        }
+        .channel-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .channel-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .channel-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .favorite-btn {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            padding: 4px;
+        }
+        .favorite-btn.active {
+            color: #fdcb6e;
+        }
+        .favorite-btn:hover {
+            transform: scale(1.2);
+        }
+
+        /* Player Area */
+        .player-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            min-width: 0;
+        }
+        .video-container {
+            position: relative;
+            background: #000;
+            width: 100%;
+            max-height: 70vh;
+            aspect-ratio: 16/9;
+            margin: 0 auto;
+        }
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .error-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #ff6b6b;
+            font-size: 1.1rem;
+            z-index: 3;
+            display: none;
+        }
+        .error-overlay .mdi {
+            font-size: 3rem;
+        }
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Custom Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .control-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+        .control-btn:hover {
+            background: var(--card);
+            color: var(--accent);
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--card);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+        .time-display {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            min-width: 90px;
+            text-align: center;
+        }
+        .quality-selector {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-family: 'Prompt', sans-serif;
+            cursor: pointer;
+            outline: none;
+        }
+        .spacer {
+            flex: 1;
+        }
+        .channel-now {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .now-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .now-title {
+            font-weight: 500;
+        }
+        .now-badge {
+            background: var(--accent);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Stats Panel (ECharts) */
+        .stats-panel {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            width: 280px;
+            height: 160px;
+            z-index: 4;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+        .stats-panel.visible {
+            display: block;
+        }
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        #bandwidthChart {
+            width: 100%;
+            height: calc(100% - 20px);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .modal-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 280px;
+            }
+            .sidebar {
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 20;
+                height: 100vh;
+                box-shadow: var(--shadow);
+            }
+            .sidebar.collapsed {
+                left: -300px;
+            }
+            .player-area {
+                width: 100%;
+            }
+            .stats-panel {
+                width: 220px;
+                height: 120px;
+                bottom: 70px;
+                right: 10px;
+            }
+            .controls {
+                padding: 8px 10px;
+                gap: 6px;
+            }
+            .control-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 1.3rem;
+            }
+            input[type="range"] {
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo-area">
+            <span class="mdi mdi-television-play"></span>
+            <span>IPTV Player <span style="color:var(--accent)">Pro</span></span>
+        </div>
+        <div class="header-actions">
+            <div class="clock" id="clock">
+                <span class="mdi mdi-clock-outline"></span>
+                <span id="clockTime">00:00:00</span>
+            </div>
+            <button class="btn-icon" id="toggleSidebarBtn" title="แสดง/ซ่อนรายการช่อง">
+                <span class="mdi mdi-menu"></span>
+            </button>
+            <button class="btn-icon" id="statsToggleBtn" title="แสดงสถิติเครือข่าย">
+                <span class="mdi mdi-chart-line"></span>
+            </button>
+            <button class="btn-icon" id="helpBtn" title="ช่วยเหลือ">
+                <span class="mdi mdi-help-circle-outline"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="search-box">
+                    <span class="mdi mdi-magnify"></span>
+                    <input type="text" id="searchInput" placeholder="ค้นหาช่อง..." autocomplete="off">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all"><span class="mdi mdi-view-list"></span> ทั้งหมด</button>
+                    <button class="filter-btn" data-filter="favorites"><span class="mdi mdi-heart"></span> รายการโปรด</button>
+                </div>
+            </div>
+            <div class="channel-list" id="channelList">
+                <!-- Channel items rendered by JS -->
+            </div>
+        </aside>
+
+        <!-- Player Area -->
+        <main class="player-area">
+            <div class="channel-now" id="channelNow">
+
+<img class="now-logo" id="nowLogo" src="" alt="logo">
+
+<span class="now-title" id="nowName">เลือกช่องเพื่อเริ่มรับชม</span>
+                <span class="now-badge" id="nowStatus">● LIVE</span>
+            </div>
+            <div class="video-container" id="videoContainer">
+
+<video id="videoElement" controls playsinline></video>
+
+<div class="error-overlay" id="errorOverlay">
+                    <span class="mdi mdi-alert-circle-outline"></span>
+                    <span id="errorMessage">เกิดข้อผิดพลาดในการเล่น</span>
+                    <button class="btn-icon" onclick="hideError()" style="background:var(--card); border-color:var(--border);">
+                        <span class="mdi mdi-close"></span>
+                    </button>
+                </div>
+                <div class="watermark">IPTV Pro</div>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="playPauseBtn" title="เล่น/หยุด">
+                    <span class="mdi mdi-play" id="playPauseIcon"></span>
+                </button>
+                <button class="control-btn" id="stopBtn" title="หยุด">
+                    <span class="mdi mdi-stop"></span>
+                </button>
+                <div class="volume-container">
+                    <button class="control-btn" id="muteBtn" title="ปิดเสียง">
+                        <span class="mdi mdi-volume-high" id="muteIcon"></span>
+                    </button>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+                </div>
+                <span class="time-display" id="timeDisplay">00:00 / 00:00</span>
+                <div class="spacer"></div>
+                <select class="quality-selector" id="qualitySelector" title="เลือกคุณภาพ">
+                    <option value="auto">คุณภาพอัตโนมัติ</option>
+                </select>
+                <button class="control-btn" id="fullscreenBtn" title="เต็มจอ">
+                    <span class="mdi mdi-fullscreen" id="fullscreenIcon"></span>
+                </button>
+            </div>
+            <!-- Stats panel -->
+            <div class="stats-panel" id="statsPanel">
+                <div class="stats-header">
+                    <span><span class="mdi mdi-speedometer"></span> Bandwidth (Mbps)</span>
+                    <button class="btn-icon" style="width:24px;height:24px;font-size:0.9rem;background:transparent;border:none;" onclick="toggleStatsPanel(false)">
+                        <span class="mdi mdi-close"></span>
+                    </button>
+                </div>
+                <div id="bandwidthChart"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="toggleHelpModal(false)"><span class="mdi mdi-close"></span></button>
+            <div class="modal-title">
+                <span class="mdi mdi-help-circle" style="color:var(--accent)"></span>
+                วิธีใช้งาน
+            </div>
+            <div class="mermaid">
+                graph TD
+                    A[เปิด IPTV Player] --> B{เลือกช่องจากรายการ}
+                    B --> C[คลิกที่ช่อง]
+                    C --> D[ระบบโหลดสตรีม]
+                    D --> E{มี DRM?}
+                    E -- ใช่ --> F[ใช้ ClearKey]
+                    E -- ไม่ --> G[เล่นตรง]
+                    F --> H[แสดงวิดีโอ]
+                    G --> H
+                    H --> I[ควบคุม: เล่น/หยุด, เสียง, เต็มจอ]
+                    I --> J{ต้องการค้นหา?}
+                    J -- ใช่ --> K[พิมพ์ชื่อช่องในช่องค้นหา]
+                    J -- ไม่ --> L[เพลิดเพลินกับการรับชม]
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <span>📺 IPTV Player Pro — สตรีมมิ่งออนไลน์ความละเอียดสูง</span>
+        <span>สร้างด้วย ❤️ + Shaka Player + ECharts</span>
+    </footer>
+
+    <script>
+        // ==================== CHANNEL DATA ====================
+        // ใส่ช่องของคุณที่นี่ (ใช้รูปแบบเดียวกับตัวอย่าง)
+        const channels = [
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/ch5new.logo.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/5/5.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0001.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/2/2.mpd",
+                keyId: "ca20a93cf8e3421dafbd5bdb1990081b",
+                key: "86ae86a7391c481ea93eecdb740f0a14"
+                },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0014.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/3/3.mpd",
+                keyId: "4d4426a505f64382a9841155d721cee6",
+                key: "0f4770219ccb4be5836a7517057e51c3"
+                },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/ALTV.PNG",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/4/4.mpd",
+                keyId: "1e98456bcbea44b7ad05831387e364ef",
+                key: "3d14fd4f9d3149a79b35a7124fccbd67"
+                },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/T-SPorts_7_Final.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/7/7.mpd",
+                keyId: "6187523f92b9475bb5b192f70cef1342",
+                key: "5119311f482144d58dacabc5bc1fa4ba"
+                },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0048.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/10/10.mpd",
+                keyId: "5da46688fd1e4ed5b085a12519b9dc4e",
+                key: "fd07bcf33823447180f53f6540f74ccb"
+                },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/R2_0053.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/16/16.mpd",
+                keyId: "9ebedc957e934d2b9023e4e60b97af73",
+                key: "7bcb4363df74457bbafedec1a864e6b6"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/JKN18.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/18/18.mpd",
+                keyId: "333de6034a1d45fe91c829539caf1149",
+                key: "2710efc048ca44bba4c2b57397989a26"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0021.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/22/22.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main//0015_R.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/23/23.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0054.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/24/24.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0019.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/25/25.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main//0006.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/27/27.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0016.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/29/29.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/MCOT_new.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/30/30.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0012.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/31/31.mpd",
+                keyId: "87db4361f7894655a4656e9c8b935a02",
+                key: "b025a4b950df41158a87cfc8d6f2ac34"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0013_R.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/32/32.mpd",
+                keyId: "9d76aea451d441a4913d4d70c4e586ab",
+                key: "051027a6ff54494b949ba792928e9008"
+            },
+            {
+                name: "",
+                logo: "https://bkk-a.play-rfcdn.ais.th/iptvepg/layout/epg/poster/202605/2605132054389202359562242.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/33/33.mpd",
+                keyId: "9d76aea451d441a4913d4d70c4e586ab",
+                key: "051027a6ff54494b949ba792928e9008"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0018.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/35/35.mpd",
+                keyId: "4d4426a505f64382a9841155d721cee6",
+                key: "0f4770219ccb4be5836a7517057e51c3"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/AmarinTV_NEW512.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/34/34.mpd",
+                keyId: "4d4426a505f64382a9841155d721cee6",
+                key: "0f4770219ccb4be5836a7517057e51c3"
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/PPTV_2024e.jpg",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/36/36.mpd",
+                keyId: "4d4426a505f64382a9841155d721cee6",
+                key: "0f4770219ccb4be5836a7517057e51c3"
+            
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0171.png",
+                file: "https://cco-streamer1.cdn.3bbtv.com:8443/3bb/live/301/301.mpd",
+                keyId: "f140b94c73ab4ef5b96da7f49afb1154",
+                key: "85e4ef232c6e460f888eb20f651d66e3"
+            
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main//Cartoonito.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/302/302.mpd",
+                keyId: "ad2371259d34404cb89d54a4dc88dcd3",
+                key: "1ba155e345c4456ba891cbee9b3e1c4c"
+            
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/LOGO_Nickelodeon2.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/303/303.mpd",
+                keyId: "9130a6448a74430794d355b48b56a64c",
+                key: "c2f4d3288cdb43cf81e519ceb414dd6f"
+            
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/Nickjr_2024.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/304/304.mpd",
+                keyId: "641c3f0e676d49d18c2082e093380e69",
+                key: "e06f3a2e327643249c3831ab199c4015"
+            
+            },
+            {
+                name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/3BBAsian_new.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/101/101.mpd",
+                keyId: "dac6cbd9d17a451bb76386f52469e0e9",
+                key: "2e2ac52cadf843459915eaa1a9b95e48"
+            
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/Mono29Plus_new.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/109/109.mpd",
+                keyId: "072eeb02f6744f838fcc8f0ef36b312e",
+                key: "b797c12f2dd64728aae23fd3c8ef275c"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/R_0148.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/103/103.mpd",
+                keyId: "9c5735afb4fd402580360aed8364469c",
+                key: "128d55d9ac2b47ad85f86b5d08320179"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main//0149.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/104/104.mpd",
+                keyId: "0db89bae851440a5994f5893ad480494",
+                key: "d88ef77eaedf4451a65be2e0bf6eabde"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main//0151.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/105/105.mpd",
+                keyId: "7c04b8e7aa524afea879b2ed1aef8242",
+                key: "91e72b75fcb94c3bb36cceb741afd621"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0150.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/106/106.mpd",
+                keyId: "07b138f30ad3441ca5a2f476e550af25",
+                key: "826ee4deef4b45cfafd5f79a591b15c6"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/0147.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/107/107.mpd",
+                keyId: "f48caba466394e93b50780f21798787a",
+                key: "9a074a10db4342e7937076b3e52f6029"    
+            },
+            {
+             name: "",
+                logo: "https://raw.githubusercontent.com/tong4321/Logo-tv/refs/heads/main/3BBsports1_new.png",
+                file: "https://cri-streamer3.cdn.3bbtv.com:8443/3bb/live/401/401.mpd",
+                keyId: "678bbba596584ad895d2923fb0255e82",
+                key: "c55471086c824112b217743a31abdf8f"    
+            },
+            {
+             name: "",
+                logo: "https://cms.dmpcdn.com/livetv/2021/10/01/c028a650-226a-11ec-8746-bdb6cf7b14ca_webp_original.png",
+                file: "https://cco-streamer1.cdn.3bbtv.com:8443/3bb/live/501/501.mpd",
+                keyId: "7d0b58f6ba324ad5bf123a8098e3ad2f",
+                key: "45906f0ddd1e4c28ba9e9dc138d75da8"    
+            }
+            
+  ];
+
+        // ==================== GLOBALS ====================
+        let shakaPlayer = null;
+        let currentChannelIndex = -1;
+        let favorites = JSON.parse(localStorage.getItem('iptv_favorites') || '[]');
+        let currentFilter = 'all';
+        let bandwidthChart = null;
+        let bandwidthData = [];
+        let statsTimer = null;
+        let lastStatsTime = Date.now();
+
+        const video = document.getElementById('videoElement');
+        const channelListEl = document.getElementById('channelList');
+        const nowLogo = document.getElementById('nowLogo');
+        const nowName = document.getElementById('nowName');
+        const nowStatus = document.getElementById('nowStatus');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const muteIcon = document.getElementById('muteIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const qualitySelector = document.getElementById('qualitySelector');
+        const errorOverlay = document.getElementById('errorOverlay');
+        const errorMessage = document.getElementById('errorMessage');
+        const statsPanel = document.getElementById('statsPanel');
+        const sidebar = document.getElementById('sidebar');
+        const clockTime = document.getElementById('clockTime');
+
+        // ==================== INIT SHaka PLAYER ====================
+        async function initShaka() {
+            if (!shaka.Player.isBrowserSupported()) {
+                showError('เบราว์เซอร์ไม่รองรับ Shaka Player');
+                return false;
+            }
+            shakaPlayer = new shaka.Player(video);
+            shakaPlayer.addEventListener('error', onPlayerError);
+            // ตั้งค่า DRM เบื้องต้น
+            shakaPlayer.configure({
+                drm: {
+                    clearKeys: {}
+                }
+            });
+            // อัปเดตเวลา
+            video.addEventListener('timeupdate', updateTimeDisplay);
+            video.addEventListener('play', () => { playPauseIcon.className = 'mdi mdi-pause'; });
+            video.addEventListener('pause', () => { playPauseIcon.className = 'mdi mdi-play'; });
+            video.addEventListener('volumechange', updateVolumeUI);
+            video.addEventListener('ended', () => { playPauseIcon.className = 'mdi mdi-play'; });
+            // โหลดช่องแรก
+            if (channels.length > 0) {
+                const lastIndex = parseInt(localStorage.getItem('iptv_last_channel') || '0');
+                loadChannel(lastIndex < channels.length ? lastIndex : 0);
+            }
+            return true;
+        }
+
+        function onPlayerError(event) {
+            console.error('Shaka Error:', event.detail);
+            let msg = 'เกิดข้อผิดพลาดในการเล่นสตรีม';
+            if (event.detail && event.detail.code) {
+                switch (event.detail.code) {
+                    case shaka.util.Error.Code.MANIFEST_REQUEST_ERROR:
+                        msg = 'ไม่สามารถโหลดไฟล์ manifest ได้'; break;
+                    case shaka.util.Error.Code.MANIFEST_PARSE_ERROR:
+                        msg = 'รูปแบบ manifest ไม่ถูกต้อง'; break;
+                    case shaka.util.Error.Code.HTTP_ERROR:
+                        msg = 'เกิดข้อผิดพลาด HTTP'; break;
+                    case shaka.util.Error.Code.REQUESTED_KEY_SYSTEM_CONFIG_UNAVAILABLE:
+                        msg = 'ระบบ DRM ไม่พร้อมใช้งาน'; break;
+                    default:
+                        msg = event.detail.message || msg;
+                }
+            }
+            showError(msg);
+        }
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorOverlay.style.display = 'flex';
+            nowStatus.textContent = '● ERROR';
+        }
+        function hideError() {
+            errorOverlay.style.display = 'none';
+            if (currentChannelIndex >= 0) nowStatus.textContent = '● LIVE';
+            else nowStatus.textContent = '● IDLE';
+        }
+
+        // ==================== LOAD CHANNEL ====================
+        async function loadChannel(index) {
+            if (!shakaPlayer || index < 0 || index >= channels.length) return;
+            try {
+                hideError();
+                const channel = channels[index];
+                currentChannelIndex = index;
+                
+                // อัปเดต UI รายการ
+                document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+                const activeItem = document.querySelector(`.channel-item[data-index="${index}"]`);
+                if (activeItem) activeItem.classList.add('active');
+                
+                // แสดงชื่อ/โลโก้
+                nowLogo.src = channel.logo || 'https://via.placeholder.com/100?text=TV';
+                nowName.textContent = channel.name || 'ไม่ระบุชื่อ';
+                nowStatus.textContent = '● BUFFERING...';
+                
+                // ตั้งค่า DRM ClearKey ถ้ามี
+                const clearKeys = {};
+                if (channel.keyId && channel.key) {
+                    // Shaka ต้องการ keyId และ key เป็น hex string ตัวพิมพ์เล็ก
+                    const kid = channel.keyId.toLowerCase();
+                    const k = channel.key.toLowerCase();
+                    clearKeys[kid] = k;
+                }
+                shakaPlayer.configure({
+                    drm: {
+                        clearKeys: clearKeys
+                    }
+                });
+                
+                // โหลดสตรีม
+                await shakaPlayer.load(channel.file);
+                
+                // อัปเดตคุณภาพ
+                updateQualitySelector();
+                
+                // บันทึกช่องล่าสุด
+                localStorage.setItem('iptv_last_channel', index.toString());
+                
+                nowStatus.textContent = '● LIVE';
+                video.play().catch(e => console.log('Autoplay blocked, user interaction needed'));
+            } catch (error) {
+                console.error('Load error:', error);
+                showError('ไม่สามารถโหลดช่องได้: ' + (error.message || 'unknown error'));
+                nowStatus.textContent = '● ERROR';
+            }
+        }
+
+        // ==================== CHANNEL LIST RENDERING ====================
+        function renderChannels() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = channels.filter(ch => {
+                const matchesSearch = ch.name.toLowerCase().includes(searchTerm);
+                const matchesFilter = currentFilter === 'all' || (currentFilter === 'favorites' && favorites.includes(channels.indexOf(ch)));
+                return matchesSearch && matchesFilter;
+            });
+
+            channelListEl.innerHTML = '';
+            filtered.forEach((ch, idx) => {
+                const globalIndex = channels.indexOf(ch);
+                const item = document.createElement('div');
+                item.className = 'channel-item' + (globalIndex === currentChannelIndex ? ' active' : '');
+                item.setAttribute('data-index', globalIndex);
+                item.innerHTML = `
+
+<img class="channel-logo" src="${ch.logo}" alt="${ch.name}" onerror="this.src='https://via.placeholder.com/100?text=TV'">
+
+<div class="channel-info">
+                        <div class="channel-name">${ch.name}</div>
+                        <div class="channel-meta">
+                            <span class="mdi mdi-signal"></span> ${ch.keyId ? '🔒 DRM' : '📡 ฟรี'}
+                        </div>
+                    </div>
+                    <button class="favorite-btn ${favorites.includes(globalIndex) ? 'active' : ''}" onclick="toggleFavorite(${globalIndex}, event)">
+                        <span class="mdi mdi-heart"></span>
+                    </button>
+                `;
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.favorite-btn')) return;
+                    loadChannel(globalIndex);
+                });
+                channelListEl.appendChild(item);
+            });
+
+            // ถ้าไม่มีรายการ
+            if (filtered.length === 0) {
+                channelListEl.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">
+                    <span class="mdi mdi-magnify-close" style="font-size:2.5rem"></span>
+                    <p>ไม่พบช่องที่ค้นหา</p>
+                </div>`;
+            }
+        }
+
+        function toggleFavorite(index, event) {
+            event.stopPropagation();
+            const idx = favorites.indexOf(index);
+            if (idx >= 0) favorites.splice(idx, 1);
+            else favorites.push(index);
+            localStorage.setItem('iptv_favorites', JSON.stringify(favorites));
+            renderChannels();
+        }
+
+        // ==================== CONTROLS ====================
+        function togglePlayPause() {
+            if (!shakaPlayer) return;
+            if (video.paused) video.play();
+            else video.pause();
+        }
+        function stopPlayback() {
+            if (shakaPlayer) {
+                shakaPlayer.unload().then(() => {
+                    video.pause();
+                    video.currentTime = 0;
+                    playPauseIcon.className = 'mdi mdi-play';
+                    nowStatus.textContent = '● IDLE';
+                    nowName.textContent = 'เลือกช่องเพื่อเริ่มรับชม';
+                    nowLogo.src = '';
+                });
+            }
+        }
+        function toggleMute() {
+            video.muted = !video.muted;
+            updateVolumeUI();
+        }
+        function updateVolumeUI() {
+            const vol = video.muted ? 0 : video.volume;
+            volumeSlider.value = vol;
+            if (vol === 0) muteIcon.className = 'mdi mdi-volume-off';
+            else if (vol < 0.5) muteIcon.className = 'mdi mdi-volume-medium';
+            else muteIcon.className = 'mdi mdi-volume-high';
+        }
+        function setVolume(val) {
+            video.volume = val;
+            video.muted = (val === 0);
+            updateVolumeUI();
+        }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.getElementById('videoContainer').requestFullscreen().catch(err => console.log(err));
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        function updateTimeDisplay() {
+            if (!video.duration) {
+                timeDisplay.textContent = '00:00 / 00:00';
+                return;
+            }
+            const current = formatTime(video.currentTime);
+            const total = formatTime(video.duration);
+            timeDisplay.textContent = `${current} / ${total}`;
+        }
+        function formatTime(sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = Math.floor(sec % 60);
+            let str = '';
+            if (h > 0) str += `${h.toString().padStart(2, '0')}:`;
+            str += `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            return str;
+        }
+        function updateQualitySelector() {
+            if (!shakaPlayer) return;
+            const tracks = shakaPlayer.getVariantTracks();
+            qualitySelector.innerHTML = '<option value="auto">คุณภาพอัตโนมัติ</option>';
+            tracks.forEach((track, i) => {
+                const label = track.height ? `${track.height}p` : `Track ${i}`;
+                const opt = document.createElement('option');
+                opt.value = track.id;
+                opt.textContent = label;
+                qualitySelector.appendChild(opt);
+            });
+            qualitySelector.value = 'auto';
+            qualitySelector.onchange = () => {
+                if (qualitySelector.value === 'auto') {
+                    shakaPlayer.configure({ abr: { enabled: true } });
+                } else {
+                    shakaPlayer.configure({ abr: { enabled: false } });
+                    shakaPlayer.selectVariantTrack(Number(qualitySelector.value), true);
+                }
+            };
+        }
+
+        // ==================== STATS & ECHARTS ====================
+        function initChart() {
+            const chartDom = document.getElementById('bandwidthChart');
+            bandwidthChart = echarts.init(chartDom);
+            const option = {
+                grid: { left: 5, right: 5, top: 5, bottom: 5, containLabel: true },
+                xAxis: { type: 'category', show: false, data: [] },
+                yAxis: { type: 'value', min: 0, show: false },
+                series: [{
+                    type: 'line',
+                    smooth: true,
+                    areaStyle: { color: 'rgba(108,92,231,0.3)' },
+                    lineStyle: { color: '#6c5ce7', width: 2 },
+                    symbol: 'none',
+                    data: []
+                }]
+            };
+            bandwidthChart.setOption(option);
+        }
+        function updateStats() {
+            if (!shakaPlayer || !bandwidthChart || !statsPanel.classList.contains('visible')) return;
+            const stats = shakaPlayer.getStats();
+            const bandwidth = stats.estimatedBandwidth / 1000 / 1000; // to Mbps
+            const now = new Date();
+            bandwidthData.push({ time: now.toLocaleTimeString(), value: bandwidth });
+            if (bandwidthData.length > 20) bandwidthData.shift();
+            const labels = bandwidthData.map(d => d.time);
+            const values = bandwidthData.map(d => d.value);
+            bandwidthChart.setOption({
+                xAxis: { data: labels },
+                series: [{ data: values }]
+            });
+        }
+        function toggleStatsPanel(force) {
+            const show = force !== undefined ? force : !statsPanel.classList.contains('visible');
+            statsPanel.classList.toggle('visible', show);
+            if (show) {
+                if (!bandwidthChart) initChart();
+                if (!statsTimer) {
+                    statsTimer = setInterval(updateStats, 1000);
+                }
+            } else {
+                if (statsTimer) {
+                    clearInterval(statsTimer);
+                    statsTimer = null;
+                }
+            }
+        }
+
+        // ==================== HELP MODAL & MERMAID ====================
+        function toggleHelpModal(show) {
+            const modal = document.getElementById('helpModal');
+            modal.classList.toggle('active', show);
+            if (show) {
+                mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+                mermaid.run();
+            }
+        }
+
+        // ==================== CLOCK ====================
+        function updateClock() {
+            const now = new Date();
+            clockTime.textContent = now.toLocaleTimeString('th-TH');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ==================== SIDEBAR TOGGLE ====================
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+        document.getElementById('stopBtn').addEventListener('click', stopPlayback);
+        document.getElementById('muteBtn').addEventListener('click', toggleMute);
+        volumeSlider.addEventListener('input', (e) => setVolume(parseFloat(e.target.value)));
+        document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+        document.getElementById('searchInput').addEventListener('input', renderChannels);
+        document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
+        document.getElementById('statsToggleBtn').addEventListener('click', () => toggleStatsPanel());
+        document.getElementById('helpBtn').addEventListener('click', () => toggleHelpModal(true));
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderChannels();
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            switch (e.key.toLowerCase()) {
+                case ' ':
+                    e.preventDefault();
+                    togglePlayPause();
+                    break;
+                case 'f':
+                    toggleFullscreen();
+                    break;
+                case 'm':
+                    toggleMute();
+                    break;
+                case 'arrowup':
+                case 'arrowdown':
+                    if (currentChannelIndex >= 0) {
+                        const next = e.key === 'arrowup' ? currentChannelIndex - 1 : currentChannelIndex + 1;
+                        if (next >= 0 && next < channels.length) loadChannel(next);
+                    }
+                    break;
+            }
+        });
+
+        // Handle fullscreen change icon
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            if (document.fullscreenElement) icon.className = 'mdi mdi-fullscreen-exit';
+            else icon.className = 'mdi mdi-fullscreen';
+        });
+
+        // ==================== INIT ====================
+        (async function init() {
+            updateVolumeUI();
+            renderChannels();
+            await initShaka();
+            initChart();
+        })();
+    </script>
+</body>
+</html>
